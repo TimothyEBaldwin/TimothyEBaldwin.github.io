@@ -1,0 +1,30 @@
+From d6becd6bb1269c8436df0e9e86fe3c7456616594 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Sun, 29 Sep 2013 20:18:49 +0100
+Subject: [PATCH 02/35] Fix TickIrqReenter
+
+---
+ castle/RiscOS/Sources/Kernel/s/TickEvents | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/s/TickEvents b/castle/RiscOS/Sources/Kernel/s/TickEvents
+index 5f03845..c69f05d 100644
+--- a/castle/RiscOS/Sources/Kernel/s/TickEvents
++++ b/castle/RiscOS/Sources/Kernel/s/TickEvents
+@@ -151,11 +151,11 @@ ProcessTickEventChain  ROUT
+         MOVNE   pc, lr                          ; nothing to call yet (was MOVPL)
+ 
+         Push    "lr"                            ; save IRQ_lr
+- [ TickIrqReenter
++
+         WritePSRc SVC_mode+I_bit, r10           ; switch to SVC mode, IRQ's off
+         NOP
+         Push    "lr"                            ; save SVC_lr
+- ]
++
+ 01
+         LDMIA   r1, {r2, r10, r11, r12}         ; load next ptr, redo state,
+                                                 ;     address and R12val
+-- 
+1.8.4.rc3
+

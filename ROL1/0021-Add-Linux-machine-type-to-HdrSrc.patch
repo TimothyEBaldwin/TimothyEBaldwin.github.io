@@ -1,0 +1,437 @@
+From 4deb5cad773ab0dcb35224ed3e48899973e3c771 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Sat, 2 Nov 2013 19:45:53 +0000
+Subject: [PATCH 21/35] Add Linux machine type to HdrSrc
+
+Conflicts:
+	castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps
+
+Conflicts:
+	castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps
+---
+ castle/RiscOS/Sources/Programmer/HdrSrc/Makefile   |   2 +
+ .../RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Arch  |   5 +
+ .../RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps | 143 ++++++++++++++++++++-
+ .../Sources/Programmer/HdrSrc/hdr/MEMM/Linux       |  58 +++++++++
+ .../Sources/Programmer/HdrSrc/hdr/Machine/Linux    |  25 ++++
+ .../Sources/Programmer/HdrSrc/hdr/Machine/Machine  |  24 +++-
+ 6 files changed, 248 insertions(+), 9 deletions(-)
+ create mode 100644 castle/RiscOS/Sources/Programmer/HdrSrc/hdr/MEMM/Linux
+ create mode 100644 castle/RiscOS/Sources/Programmer/HdrSrc/hdr/Machine/Linux
+
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile b/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile
+index 7a9a31b..e11b8d9 100644
+--- a/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile
+@@ -89,6 +89,7 @@ EXPORTS   = \
+  ${HDRDIR}.ListOpts \
+  ${HDRDIR}.MEMM.ARM600 \
+  ${HDRDIR}.MEMM.MEMC1 \
++ ${HDRDIR}.MEMM.Linux \
+  ${HDRDIR}.MEMM.VMSAv6 \
+  ${HDRDIR}.Machine.<Machine> \
+  ${HDRDIR}.Machine.All32 \
+@@ -310,6 +311,7 @@ ${HDRDIR}.IO.IOMD:           hdr.IO.IOMD;           ${CP} hdr.IO.IOMD
+ ${HDRDIR}.IO.IOMDL:          hdr.IO.IOMDL;          ${CP} hdr.IO.IOMDL             $@ ${CPFLAGS}
+ ${HDRDIR}.MEMM.ARM600:       hdr.MEMM.ARM600;       ${CP} hdr.MEMM.ARM600          $@ ${CPFLAGS}
+ ${HDRDIR}.MEMM.MEMC1:        hdr.MEMM.MEMC1;        ${CP} hdr.MEMM.MEMC1           $@ ${CPFLAGS}
++${HDRDIR}.MEMM.Linux:        hdr.MEMM.Linux;        ${CP} hdr.MEMM.Linux           $@ ${CPFLAGS}
+ ${HDRDIR}.MEMM.VMSAv6:       hdr.MEMM.VMSAv6;       ${CP} hdr.MEMM.VMSAv6          $@ ${CPFLAGS}
+ ${HDRDIR}.VIDC.VIDC1a:       hdr.VIDC.VIDC1a;       ${CP} hdr.VIDC.VIDC1a          $@ ${CPFLAGS}
+ ${HDRDIR}.VIDC.VIDC20:       hdr.VIDC.VIDC20;       ${CP} hdr.VIDC.VIDC20          $@ ${CPFLAGS}
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Arch b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Arch
+index 961b649..2261760 100644
+--- a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Arch
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Arch
+@@ -458,6 +458,10 @@ MchFlgs_CumulativeNOT SETA MchFlgs_CumulativeNOT :OR: :NOT: MchFlgs
+         ArchitectureOption v3_FPA
+         ArchitectureOption v7_VFP3D32H_SIMD
+       |
++      [ "$Machine" = "Linux" ; if the target code is required to run on Linux
++        ArchitectureOption v4
++        ArchitectureOption v7_VFP3D32H_SIMD
++      |
+         ! 1, "Unrecognised machine: $Machine"
+       ]
+       ]
+@@ -468,6 +472,7 @@ MchFlgs_CumulativeNOT SETA MchFlgs_CumulativeNOT :OR: :NOT: MchFlgs
+       ]
+       ]
+       ]
++      ]
+ 
+         GBLL    SupportARMv3
+ SupportARMv3 SETL  (MchFlgs_Cumulative :AND: MchFlg_v3) > 0
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps
+index e70c701..9826248 100644
+--- a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps
+@@ -26,18 +26,27 @@
+ ; POSSIBILITY OF SUCH DAMAGE.
+ ;
+ 
+-; See the Linux branch for a meaningful version of this file.
+-; This version is for compatibility only.
+ 
+         GBLA    PVOpsRelocation
+ PVOpsRelocation SETA 0
+ 
+         MACRO
+         PVOpsImports
++        EXTERN  __ParaVirt_SetCPSR_c
++        EXTERN  __ParaVirt_GetCPSR
++        EXTERN  __ParaVirt_FindMode
++        EXTERN  __ParaVirt_MOVS_PC_LR
+         MEND
+ 
+         MACRO
+         PVJumpTable
++        ; FIXME - temporary hack
++__ParaVirt_SetCPSR_c    LDR     pc, =0x30400034
++__ParaVirt_GetCPSR      LDR     pc, =0x30400038
++__ParaVirt_FindMode     LDR     pc, =0x3040003C
++        EXPORT  __ParaVirt_SetCPSR_c
++        EXPORT  __ParaVirt_GetCPSR
++        EXPORT  __ParaVirt_FindMode
+         MEND
+ 
+         MACRO
+@@ -45,22 +54,148 @@ PVOpsRelocation SETA 0
+         MEND
+ 
+         MACRO
++$label  GetVCpu$c
++$label  MOV$c   lr, pc
++        LDR$c   pc, =0xFFFF0FE0
++        MEND
++
++        MACRO
+ $label  vMRS$c  $reg, $psr
++        ASSERT  ("$psr" = "CPSR") :LOR: ("$psr" = "SPSR")
++ [ ParaVirt
++        IF      $reg = 0
++$label  STR$c   lr, [sp, #-4]!
++        IF     "$psr" = "CPSR"
++         BL$c   __ParaVirt_GetCPSR + PVOpsRelocation
++        ELSE
++         BL$c   __ParaVirt_FindMode + PVOpsRelocation
++         LDR$c  r0, [r0, #8]
++        ENDIF
++        LDR$c   lr, [sp], #4
++
++        ELIF    $reg = 14
++$label  STR$c   r0, [sp, #-4]!
++        IF     "$psr" = "CPSR"
++         BL$c   __ParaVirt_GetCPSR + PVOpsRelocation
++         MOV$c  lr, r0
++       ELSE
++         BL$c   __ParaVirt_FindMode + PVOpsRelocation
++         LDR$c  lr, [r0, #8]
++        ENDIF
++        LDR$c   r0, [sp], #4
++
++        ELSE
++$label  STM$c.FD        sp!, {r0, lr}
++        IF     "$psr" = "CPSR"
++         BL$c   __ParaVirt_GetCPSR + PVOpsRelocation
++         MOV$c  $reg, r0
++        ELSE
++         BL$c   __ParaVirt_FindMode + PVOpsRelocation
++         LDR$c  $reg, [r0, #8]
++        ENDIF
++        LDM$c.FD        sp!, {r0, lr}
++
++        ENDIF
++ |
+ $label  MRS$c   $reg, $psr
++ ]
+         MEND
+ 
+         MACRO
+ $label  vMSR$c  $psr, $op2a, $op2b
++$label
++ IF :LNOT: ParaVirt
++        [ "$op2b" = ""
++        MSR$c   $psr, $op2a
++        |
++        MSR$c   $psr, $op2a, $op2b
++        ]
++ ELIF "$psr" = "SPSR_cxsf"
++        STM$c.FD sp!, {r0, r1, lr}
+         [ "$op2b" = ""
+-$label  MSR$c   $psr, $op2a
++        MOV$c   r1, $op2a
+         |
+-$label  MSR$c   $psr, $op2a, $op2b
++        MOV$c   r1, $op2a, $op2b
++        ]
++        BL$c    __ParaVirt_FindMode + PVOpsRelocation
++        STR$c   r1, [r0, #8]
++        LDM$c.FD sp!, {r0, r1, lr}
++ ELSE
++        ASSERT "$psr":LEFT:5 = "CPSR_"
++        LCLS    embits
++        LCLS    bits
++embits  SETS    ""
++bits    SETS    "$psr":RIGHT:(:LEN:"$psr" - 5):CC:" "
++
++        [       bits:LEFT:1 = "c"
++embits  SETS    "c"
++bits    SETS    bits:RIGHT:(:LEN:bits - 1)
+         ]
++
++        [       bits:LEFT:1 = "x"
++embits  SETS    embits :CC: "x"
++bits    SETS    bits:RIGHT:(:LEN:bits - 1)
++        ]
++
++  [ (embits:CC:" "):LEFT:1 = "c"
++        STM$c.FD sp!, {r0-r3, ip, lr}
++        [ "$op2b" = ""
++        MOV$c   r1, $op2a
++        |
++        MOV$c   r1, $op2a, $op2b
++        ]
++        BL$c    __ParaVirt_SetCPSR_c + PVOpsRelocation
++  ]
++
++  [ embits != ""
++        [ "$op2b" = ""
++        MSR$c   CPSR_$embits, $op2a
++        |
++        MSR$c   CPSR_$embits, $op2a, $op2b
++        ]
++  ]
++
++  [ bits != " "
++        [ "$op2b" = ""
++        MSR$c   CPSR_$bits, $op2a
++        |
++        MSR$c   CPSR_$bits, $op2a, $op2b
++        ]
++  |
++        NOP     ; For strongarm
++  ]
++ ENDIF ; ParaVirt
+         MEND
+ 
+         MACRO
+ $label  MOVS_PC_LR $c
++ [ ParaVirt
++$label  B$c     __ParaVirt_MOVS_PC_LR + PVOpsRelocation
++ |
+ $label  MOV$c.S pc, lr
++ ]
+         MEND
+ 
++
++                        ^       0
++                        #       8 ; Reserved for ELF thread local variables.
++vcpu_enter_swi          #       4
++vcpu_save_r0            #       4
++vcpu_save_r1            #       4
++vcpu_save_r2            #       4
++vcpu_save_r3            #       4
++vcpu_vectors            #       4
++vcpu_cpsr               #       1
++vcpu_irq_pending        #       1
++                        #       2
++vcpu_r13_svc            #       4
++vcpu_r14_svc            #       4
++vcpu_spsr_svc           #       4
++vcpu_r13_usr            #       4
++vcpu_r14_usr            #       4
++vcpu_spsr_usr           #       4
++vcpu_r13_irq            #       4
++vcpu_r14_irq            #       4
++vcpu_spsr_irq           #       4
++
+         END
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/MEMM/Linux b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/MEMM/Linux
+new file mode 100644
+index 0000000..04b2efd
+--- /dev/null
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/MEMM/Linux
+@@ -0,0 +1,58 @@
++; This source code in this file is licensed to You by Castle Technology
++; Limited ("Castle") and its licensors on contractual terms and conditions
++; ("Licence") which entitle you freely to modify and/or to distribute this
++; source code subject to Your compliance with the terms of the Licence.
++;
++; This source code has been made available to You without any warranties
++; whatsoever. Consequently, Your use, modification and distribution of this
++; source code is entirely at Your own risk and neither Castle, its licensors
++; nor any other person who has contributed to this source code shall be
++; liable to You for any loss or damage which You may suffer as a result of
++; Your use, modification or distribution of this source code.
++;
++; Full details of Your rights and obligations are set out in the Licence.
++; You should have received a copy of the Licence with this source code file.
++; If You have not received a copy, the text of the Licence is available
++; online at www.castle-technology.co.uk/riscosbaselicence.htm
++;
++
++; Access privilege bits
++; I'm afraid we can't be selective
++
++AP_ROM  *       2_101           ; user read-only,  svc read-only
++AP_None *       2_111           ; user no access,  svc read/write
++AP_Read *       2_111           ; user read-only,  svc read/write
++AP_Full *       2_111           ; user read/write, svc read/write
++
++; MMU control register bits
++
++MMUC_M  *       1 :SHL: 0       ; MMU enable
++MMUC_A  *       1 :SHL: 1       ; Address fault enable
++MMUC_C  *       1 :SHL: 2       ; Cache enable (or Data cache enable)
++MMUC_W  *       1 :SHL: 3       ; Write buffer enable
++MMUC_P  *       1 :SHL: 4       ; 32-bit program space enable
++MMUC_D  *       1 :SHL: 5       ; 32-bit data space enable
++MMUC_L  *       1 :SHL: 6       ; Late abort mode enable
++MMUC_B  *       1 :SHL: 7       ; Big-endian mode enable
++MMUC_S  *       1 :SHL: 8       ; S-mode enable
++MMUC_R  *       1 :SHL: 9       ; R-mode enable (ARM7 or later)
++MMUC_F  *       1 :SHL: 10      ; Coprocessor frequency bit (ARM700 only)
++MMUC_Z  *       1 :SHL: 11      ; Branch predictor enable
++MMUC_I  *       1 :SHL: 12      ; Instruction cache enable
++MMUC_V  *       1 :SHL: 13      ; High exception vectors
++MMUC_RR *       1 :SHL: 14      ; Round-robin replacement
++MMUC_L4 *       1 :SHL: 15      ; Disable ARMv5 "load Thumb state with PC" behaviour
++MMUC_nF *       1 :SHL: 30      ; not FastBus (ie separate CPUCLK from MEMCLK)
++MMUC_iA *       1 :SHL: 31      ; Asynchronous
++
++L1_APMult * 1
++L2_APMult * 1
++L2T_APMult * 1
++L2X_APMult * 1
++
++L1_C    * 1
++L1_B    * 1
++L2_C    * 1
++L2_B    * 1
++
++        END
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/Machine/Linux b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/Machine/Linux
+new file mode 100644
+index 0000000..1c3a879
+--- /dev/null
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/Machine/Linux
+@@ -0,0 +1,25 @@
++; This source code in this file is licensed to You by Castle Technology
++; Limited ("Castle") and its licensors on contractual terms and conditions
++; ("Licence") which entitle you freely to modify and/or to distribute this
++; source code subject to Your compliance with the terms of the Licence.
++;
++; This source code has been made available to You without any warranties
++; whatsoever. Consequently, Your use, modification and distribution of this
++; source code is entirely at Your own risk and neither Castle, its licensors
++; nor any other person who has contributed to this source code shall be
++; liable to You for any loss or damage which You may suffer as a result of
++; Your use, modification or distribution of this source code.
++;
++; Full details of Your rights and obligations are set out in the Licence.
++; You should have received a copy of the Licence with this source code file.
++; If You have not received a copy, the text of the Licence is available
++; online at www.castle-technology.co.uk/riscosbaselicence.htm
++;
++        SUBT    Linux, Linux/ARM or QEMU user mode emulation
++
++        GBLS    Machine
++Machine SETS    "Linux"
++
++        GET     Hdr:Machine.Machine
++
++        END
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/Machine/Machine b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/Machine/Machine
+index 1b241f4..83afd9d 100644
+--- a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/Machine/Machine
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/Machine/Machine
+@@ -62,6 +62,7 @@ M_STB400        SETL    Machine="STB400"
+                 GBLL    M_IOMD
+                 GBLL    M_STB5
+                 GBLL    M_Tungsten
++                GBLL    M_Linux
+ M_32            SETL    Machine="32"
+ M_All           SETL    Machine="All"
+ M_All32         SETL    Machine="All32"
+@@ -72,6 +73,7 @@ M_CortexA9      SETL    Machine="CortexA9"
+ M_IOMD          SETL    Machine="IOMD"
+ M_STB5          SETL    Machine="STB5"
+ M_Tungsten      SETL    Machine="Tungsten"
++M_Linux         SETL    Machine="Linux"
+ 
+ ; Are we only supporting 26bit processor modes?
+ ; If true, we mustn't rely on MSR, MRS etc, and we should be
+@@ -81,7 +83,7 @@ No32bitCode     SETL    M_Archimedes :LOR: M_Morris :LOR: M_Falcon :LOR: M_Omega
+ 
+ ; Are we only supporting 32bit processor modes?
+                 GBLL    No26bitCode
+-No26bitCode     SETL    M_32 :LOR: M_Lazarus :LOR: M_IOMD :LOR: M_Tungsten :LOR: M_STB5 :LOR: M_ARM11ZF :LOR: M_CortexA8 :LOR: M_CortexA9
++No26bitCode     SETL    M_32 :LOR: M_Lazarus :LOR: M_IOMD :LOR: M_Tungsten :LOR: M_STB5 :LOR: M_ARM11ZF :LOR: M_CortexA8 :LOR: M_CortexA9 :LOR: M_Linux
+ 
+         ; If this makes your head hurt, the other way of looking at it is
+         ;   26/32 neutral => No32bitCode FALSE No26bitCode FALSE
+@@ -89,10 +91,17 @@ No26bitCode     SETL    M_32 :LOR: M_Lazarus :LOR: M_IOMD :LOR: M_Tungsten :LOR:
+         ;   26 only       => No32bitCode TRUE  No26bitCode FALSE
+         ASSERT  :LNOT: (No26bitCode :LAND: No32bitCode)
+ 
++; Are we running in user mode and using paravirtualised CPU modes?
++                GBLL    ParaVirt
++ParaVirt        SETL    M_Linux ; FIXME - disc builds?
++
++                GBLL    ParaVirtAlways
++ParaVirtAlways  SETL    M_Linux
++
+ ; Override optimisation settings to avoid using unaligned LDR(H)/STR(H) on ARMv6+
+ ; This switch should only be enabled for debugging purposes
+                 GBLL    NoUnaligned
+-NoUnaligned     SETL    M_CortexA8 :LOR: M_ARM11ZF :LOR: M_CortexA9
++NoUnaligned     SETL    M_CortexA8 :LOR: M_ARM11ZF :LOR: M_CortexA9 :LOR: M_Linux
+ 
+ ; Do we need to deal with the StrongARM conditional MSR CPSR_c bug?
+                 GBLL    StrongARM_MSR_bug
+@@ -132,12 +141,17 @@ GetMEMC         SETS    "GET Hdr:IO." :CC: MEMC_Type
+                 GBLS    MEMM_Type
+         [ M_CortexA8 :LOR: M_CortexA9 :LOR: M_ARM11ZF
+ MEMM_Type       SETS    "VMSAv6"
++        ELIF M_Linux
++MEMM_Type       SETS    "Linux"
+         |
+ MEMM_Type       SETS    "ARM600"
+         ]
+                 GBLS    GetMEMM
+ GetMEMM         SETS    "GET Hdr:MEMM." :CC: MEMM_Type
+ 
++                GBLL    PagedMemory
++PagedMemory     SETL    :LNOT: M_Linux
++
+ ; Floppy controller
+                 GBLS    FDC_Type
+ FDC_Type        SETS    "FDC711"
+@@ -174,7 +188,7 @@ DontUseVCO      SETL    M_Lazarus :LOR: M_STB400
+ 
+ ; Are we using a HAL?
+                 GBLL    HAL
+-HAL             SETL    M_32 :LOR: M_IOMD :LOR: M_Tungsten :LOR: M_STB5 :LOR: M_ARM11ZF :LOR: M_CortexA8 :LOR: M_CortexA9
++HAL             SETL    M_32 :LOR: M_IOMD :LOR: M_Tungsten :LOR: M_STB5 :LOR: M_ARM11ZF :LOR: M_CortexA8 :LOR: M_CortexA9 :LOR: M_Linux
+ 
+ ; General flag for STB/NCD-type products
+                 GBLL    STB
+@@ -203,12 +217,12 @@ MaxI2Cspeed     SETA    100
+ ; E2ROM is supported at i2c addresses >= A8 in addition to normal CMOS RAM
+ ; Note that this also controls HAL NVRAM support, and RTCSupport.
+                 GBLL    E2ROMSupport
+-E2ROMSupport    SETL    M_Falcon :LOR: M_Omega :LOR: M_Peregrine :LOR: M_STB3 :LOR: M_STB400 :LOR: M_STB5 :LOR: M_Lazarus :LOR: M_32 :LOR: M_IOMD :LOR: M_Tungsten :LOR: M_ARM11ZF :LOR: M_CortexA8 :LOR: M_CortexA9
++E2ROMSupport    SETL    M_Falcon :LOR: M_Omega :LOR: M_Peregrine :LOR: M_STB3 :LOR: M_STB400 :LOR: M_STB5 :LOR: M_Lazarus :LOR: M_32 :LOR: M_IOMD :LOR: M_Tungsten :LOR: M_ARM11ZF :LOR: M_CortexA8 :LOR: M_CortexA9 :LOR: M_Linux
+ 
+ ; Should we probe IIC addresses &A0 and &D0 for an RTC? (Requires E2ROMSupport, else Phillips RTC at &A0 is assumed)
+ ; Disabling this is useful for HAL platforms that use the HAL RTC API
+                 GBLL    RTCSupport
+-RTCSupport      SETL    :LNOT: (M_CortexA8 :LOR: M_CortexA9)
++RTCSupport      SETL    :LNOT: (M_CortexA8 :LOR: M_CortexA9 :LOR: M_Linux)
+ 
+ ; Support for network 'podule' cards
+                 GBLL    NetPodSupport
+-- 
+1.8.4.rc3
+

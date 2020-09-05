@@ -1,0 +1,111 @@
+From 20733faee4232568c1209c6148db317f187a7c07 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Sun, 6 Oct 2013 15:19:47 +0100
+Subject: [PATCH 16/35] Simplify allocation of application space on boot.
+
+---
+ castle/RiscOS/Sources/Kernel/s/ChangeDyn |  2 +-
+ castle/RiscOS/Sources/Kernel/s/NewReset  | 60 +++++---------------------------
+ 2 files changed, 9 insertions(+), 53 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/s/ChangeDyn b/castle/RiscOS/Sources/Kernel/s/ChangeDyn
+index 07b5b6d..72f4b36 100644
+--- a/castle/RiscOS/Sources/Kernel/s/ChangeDyn
++++ b/castle/RiscOS/Sources/Kernel/s/ChangeDyn
+@@ -3075,7 +3075,7 @@ InitAppSpaceTable
+         &       ChangeDyn_AplSpace
+         &       0                               ; base address
+         &       AP_AppSpace
+-        &       0                               ; size will be set up later
++        &       32*1024                         ; size will be set up later
+         &       AplWorkMaxSize
+         &       0                               ; no workspace needed
+         &       0                               ; no handler needed
+diff --git a/castle/RiscOS/Sources/Kernel/s/NewReset b/castle/RiscOS/Sources/Kernel/s/NewReset
+index d340d01..8b5dedd 100644
+--- a/castle/RiscOS/Sources/Kernel/s/NewReset
++++ b/castle/RiscOS/Sources/Kernel/s/NewReset
+@@ -100,45 +100,6 @@ GetConfiguredSize Entry "r1"
+         MOV     r2, r2, LSL r1          ; and shifted up accordingly
+         EXIT
+ 
+-; FudgeConfigureRMA - move pages from free pool to somewhere
+-; r0 = number of pages to attempt to move
+-; r1 = where to store number of bytes moved
+-; r3 = base address of where to put memory
+-; r11 = ap + CB
+-FudgeConfigureRMA
+-        Push    lr
+-        LDR     R10, =ZeroPage
+-        LDR     R10, [R10, #Page_Size]
+-        MUL     R0, R10, R0             ; get size in bytes
+-        MOV     R5, #0                  ; amount moved
+-        CMP     R0, #0
+-        BEQ     NoMoreMemory
+-
+-        LDR     r4, =ZeroPage+FreePoolDANode
+-        MOV     r6, r11                         ; r6 = ap + CB
+-        LDR     r7, [r4, #DANode_Base]
+-        LDR     r8, [r4, #DANode_Size]
+-        ADD     r7, r7, r8                      ; r7 -> end of free pool +1
+-10
+-        CMP     r8, r10                         ; if no free memory left
+-        BCC     %FT20                           ; then tidy up
+-        SUB     r7, r7, r10                     ; move free pool pointer backwards
+-        Push    "r0, r1"
+-        MOV     r0, r7
+-        MOV     r1, r3
+-        BL      MovePageAtR0ToR1WithAccessR6
+-        Pull    "r0, r1"
+-        ADD     r3, r3, r10                     ; advance "to" pointer
+-        SUB     r8, r8, r10                     ; one less page of free memory
+-        ADD     r5, r5, r10                     ; one more page done
+-        SUBS    r0, r0, r10
+-        BNE     %BT10
+-20
+-        STR     r8, [r4, #DANode_Size]
+-NoMoreMemory
+-        STR     R5, [R1]
+-        Pull    "PC"
+-
+ ; MassageScreenSize - called from screen DA creation and ReadSysInfo
+ 
+ MassageScreenSize ROUT
+@@ -1043,26 +1004,21 @@ WallopDuffOnes
+         BL      DynArea_Create          ; ignore any error, we're stuffed if we get one!
+         Pull    "r0-r12"
+ 
+-        LDR     R0, =(AplWorkMaxSize-32*1024):SHR:12    ; maximum number of pages in aplspace
+-        MOV     R3, #32*1024            ; aplwork start
+-        LDR     R1, =ZeroPage+AplWorkSize ; aplwork size
+-        MOV     r11, #AP_AppSpace
+-        BL      FudgeConfigureRMA       ; put as much as possible in aplspace
+-
+-        LDR     R0, =ZeroPage
+-        LDR     R1, [R0, #AplWorkSize]
+-        ADD     R1, R1, #32*1024
+-        STR     R1, [R0, #AplWorkSize]
+-        STR     R1, [R0, #MemLimit]
++        DebugTX "Application Space"
++        MOV     R0, #ChangeDyn_FreePool
++        MOV     R1, #640*1024
++        RSB     R1, R1, #0
++        SWI     XOS_ChangeDynamicArea   ; Give us some application space
++        LDR     R1, =ZeroPage
++        LDR     R0, [R1, #AplWorkSize]
++        STR     R0, [R1, #MemLimit]
+ 
+         DebugTX "InitVectors"
+         BL      InitVectors               ; ready for OsByte to read mode
+ 
+         LDR     R1, =ZeroPage+ModuleSWI_HashTab
+         MOV     R2, #ModuleSHT_Entries
+-      [ ZeroPage <> 0
+         MOV     R0, #0
+-      ]
+ clearmswis
+         SUBS    R2, R2, #1
+         STR     R0, [R1, R2, LSL #2]
+-- 
+1.8.4.rc3
+

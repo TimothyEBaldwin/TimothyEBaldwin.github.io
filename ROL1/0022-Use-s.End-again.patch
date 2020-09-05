@@ -1,0 +1,67 @@
+From 0ac87da9fdbc5e804fb4049c2114453a94cf8d5d Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Sat, 2 Nov 2013 20:27:56 +0000
+Subject: [PATCH 22/35] Use s.End again
+
+---
+ castle/RiscOS/Sources/Kernel/Makefile | 2 +-
+ castle/RiscOS/Sources/Kernel/s/ARM600 | 2 +-
+ castle/RiscOS/Sources/Kernel/s/End    | 2 +-
+ castle/RiscOS/Sources/Kernel/s/GetAll | 3 +--
+ 4 files changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/Makefile b/castle/RiscOS/Sources/Kernel/Makefile
+index 1a6be81..e046661 100644
+--- a/castle/RiscOS/Sources/Kernel/Makefile
++++ b/castle/RiscOS/Sources/Kernel/Makefile
+@@ -64,7 +64,7 @@ SOURCE    = s.GetAll
+ TARGET    = rm.Kernel
+ AIFDBG    = aif.Kernel
+ GPADBG    = GPA
+-OBJECTS   = o.GetAll #o.ARMops o.End
++OBJECTS   = o.GetAll o.End #o.ARMops
+ EXPORTS   = ${EXP_HDR}.EnvNumbers \
+             ${EXP_HDR}.ModHand \
+             ${EXP_HDR}.PublicWS \
+diff --git a/castle/RiscOS/Sources/Kernel/s/ARM600 b/castle/RiscOS/Sources/Kernel/s/ARM600
+index f67f072..762d6c8 100644
+--- a/castle/RiscOS/Sources/Kernel/s/ARM600
++++ b/castle/RiscOS/Sources/Kernel/s/ARM600
+@@ -1304,7 +1304,7 @@ ProcessTransfer Entry "r1-r7,r12"
+         BHS     %FT22
+         CMP     r4, #ROM                                ; and executing outside the kernel
+         BLO     %FT23
+-        ADRL    lr, EndOfKernel
++        LDR     lr, =EndOfKernel
+         CMP     r4, lr
+         BLO     %FT22
+ 23
+diff --git a/castle/RiscOS/Sources/Kernel/s/End b/castle/RiscOS/Sources/Kernel/s/End
+index 3391c62..8aba57b 100644
+--- a/castle/RiscOS/Sources/Kernel/s/End
++++ b/castle/RiscOS/Sources/Kernel/s/End
+@@ -17,7 +17,7 @@
+ ; 
+         EXPORT  EndOfKernel
+ 
+-        AREA    ZZZZZ, CODE, READONLY, ALIGN=16 ; align to 64K (yuck)
++        AREA    ZZZZZ, CODE, READONLY
+ 
+ EndOfKernel
+         &       0                       ; for patching by BigSplit et al
+diff --git a/castle/RiscOS/Sources/Kernel/s/GetAll b/castle/RiscOS/Sources/Kernel/s/GetAll
+index a005f1f..796de98 100644
+--- a/castle/RiscOS/Sources/Kernel/s/GetAll
++++ b/castle/RiscOS/Sources/Kernel/s/GetAll
+@@ -113,7 +113,6 @@ EndOfAMB
+ 
+         ! 0, "AMB section size = &" :CC: :STR: (EndOfAMB - StartOfAMB)
+ 
+-EndOfKernel
+-        DCD     0
++        IMPORT  EndOfKernel
+ 
+         END
+-- 
+1.8.4.rc3
+

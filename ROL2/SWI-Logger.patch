@@ -1,0 +1,56 @@
+From 20d42a9d5d1360dfc1f332cd9bb39c2af7dd47c8 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Sun, 19 Feb 2017 10:36:43 +0000
+Subject: [PATCH 1/4] SWI Log
+
+---
+ mixed/Linux/HAL/c/Main          |  4 ++++
+ mixed/Linux/Support/swi_log.cpp | 21 +++++++++++++++++++++
+ 2 files changed, 25 insertions(+)
+ create mode 100644 mixed/Linux/Support/swi_log.cpp
+
+diff --git a/mixed/Linux/HAL/c/Main b/mixed/Linux/HAL/c/Main
+index 8004ab74..19d8bd5d 100644
+--- a/mixed/Linux/HAL/c/Main
++++ b/mixed/Linux/HAL/c/Main
+@@ -523,6 +523,10 @@ static void abort_signal_handler(int signal, siginfo_t *info, struct ucontext *u
+ static void swi_signal_handler(int signal, siginfo_t *info, struct ucontext *ucontext) {
+   struct sigcontext * restrict r = &ucontext->uc_mcontext;
+   struct vcpu* vcpu = __kuser_get_tls();
++
++  uint32_t addr = r->arm_pc - 4;
++  ix_write(40, &addr, 4);
++
+   uint32_t swi = *(uint32_t*)(r->arm_pc - 4);
+ swi:
+   swi &= 0xFDFFFF;
+diff --git a/mixed/Linux/Support/swi_log.cpp b/mixed/Linux/Support/swi_log.cpp
+new file mode 100644
+index 00000000..8e947da6
+--- /dev/null
++++ b/mixed/Linux/Support/swi_log.cpp
+@@ -0,0 +1,21 @@
++#include <cstdint>
++#include <iostream>
++#include <map>
++
++using namespace std;
++
++map<uint32_t, uint64_t> counts;
++
++int main() {
++  while(cin.good()) {
++    uint32_t s = 0;
++    cin.read(reinterpret_cast<char *>(&s), 4);
++    ++counts[s];
++  }
++
++  for(auto &i : counts) {
++    cout << i.first << ",0x" << hex << i.first << dec << ',' << i.second << endl;
++  }
++
++  return 0;
++}
+-- 
+2.11.0
+

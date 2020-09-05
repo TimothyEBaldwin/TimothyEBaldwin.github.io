@@ -1,0 +1,54 @@
+From 8e5f66428368ce9841ccb577334460de2821b11b Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Tue, 8 Oct 2013 20:10:14 +0100
+Subject: [PATCH 01/35] Fix ExportVals Licence header
+
+---
+ .../RiscOS/Sources/Kernel/hdr/ExportVals/Makefile  | 34 +++++++++++-----------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/hdr/ExportVals/Makefile b/castle/RiscOS/Sources/Kernel/hdr/ExportVals/Makefile
+index b6fae88..f8f5357 100644
+--- a/castle/RiscOS/Sources/Kernel/hdr/ExportVals/Makefile
++++ b/castle/RiscOS/Sources/Kernel/hdr/ExportVals/Makefile
+@@ -1,20 +1,20 @@
+-; This source code in this file is licensed to You by Castle Technology
+-; Limited ("Castle") and its licensors on contractual terms and conditions
+-; ("Licence") which entitle you freely to modify and/or to distribute this
+-; source code subject to Your compliance with the terms of the Licence.
+-; 
+-; This source code has been made available to You without any warranties
+-; whatsoever. Consequently, Your use, modification and distribution of this
+-; source code is entirely at Your own risk and neither Castle, its licensors
+-; nor any other person who has contributed to this source code shall be
+-; liable to You for any loss or damage which You may suffer as a result of
+-; Your use, modification or distribution of this source code.
+-; 
+-; Full details of Your rights and obligations are set out in the Licence.
+-; You should have received a copy of the Licence with this source code file.
+-; If You have not received a copy, the text of the Licence is available
+-; online at www.castle-technology.co.uk/riscosbaselicence.htm
+-; 
++# This source code in this file is licensed to You by Castle Technology
++# Limited ("Castle") and its licensors on contractual terms and conditions
++# ("Licence") which entitle you freely to modify and/or to distribute this
++# source code subject to Your compliance with the terms of the Licence.
++#
++# This source code has been made available to You without any warranties
++# whatsoever. Consequently, Your use, modification and distribution of this
++# source code is entirely at Your own risk and neither Castle, its licensors
++# nor any other person who has contributed to this source code shall be
++# liable to You for any loss or damage which You may suffer as a result of
++# Your use, modification or distribution of this source code.
++#
++# Full details of Your rights and obligations are set out in the Licence.
++# You should have received a copy of the Licence with this source code file.
++# If You have not received a copy, the text of the Licence is available
++# online at www.castle-technology.co.uk/riscosbaselicence.htm
++#
+ # Makefile for ExportVals
+ #
+ 
+-- 
+1.8.4.rc3
+

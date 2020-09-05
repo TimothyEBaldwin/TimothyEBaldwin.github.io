@@ -1,0 +1,119 @@
+Index: build-world
+===================================================================
+--- build-world	(revision 7220)
++++ build-world	(working copy)
+@@ -32,7 +32,7 @@
+ 
+ trap error_handler ERR
+ 
+-make 2>&1 | tee build-cross-output.txt
++make -j4 2>&1 | tee build-cross-output.txt
+ test ${PIPESTATUS[0]} -ne 0 && error_handler
+ 
+ ./install-env
+Index: recipe/files/gcc/libunixlib/incl-local/internal/asm_dec.s
+===================================================================
+--- recipe/files/gcc/libunixlib/incl-local/internal/asm_dec.s	(revision 7220)
++++ recipe/files/gcc/libunixlib/incl-local/internal/asm_dec.s	(working copy)
+@@ -124,6 +124,7 @@
+ .set	OS_GenerateError, 0x00002B
+ .set	OS_ChangeEnvironment, 0x000040
+ .set	OS_DynamicArea, 0x000066
++.set	OS_LeaveOS, 0x00007C
+ 
+ .set	X_Bit, 0x20000
+ 
+@@ -181,6 +182,7 @@
+ .set	XOS_AMBControl, 0x000070 + X_Bit
+ .set	XOS_CallASWIR12, 0x000071 + X_Bit
+ .set	XOS_Hardware, 0x00007A + X_Bit
++.set	XOS_LeaveOS, 0x00007C + X_Bit
+ .set	XOS_ConvertHex8, 0x0000D4 + X_Bit
+ .set	XOS_ConvertInteger1, 0x0000D9 + X_Bit
+ .set	XOS_ConvertInteger2, 0x0000DA + X_Bit
+Index: recipe/files/gcc/libunixlib/incl-local/internal/elf-macros.s
+===================================================================
+--- recipe/files/gcc/libunixlib/incl-local/internal/elf-macros.s	(revision 7220)
++++ recipe/files/gcc/libunixlib/incl-local/internal/elf-macros.s	(working copy)
+@@ -69,15 +69,9 @@
+ 	@ Works in 26bit or 32bit modes, on all architectures
+ 	@ Use e.g. CHGMODE a1, SVC_Mode+IFlag
+ 	.macro	CHGMODE	scratch, mode
+-	teq	a1, a1	@ Set Z
+ 	teq	pc, pc	@ EQ if 32-bit mode
+ 	teqnep	pc, #\mode
+-	mrseq	\scratch, CPSR	@ Acts a NOP for TEQP
+-	biceq	\scratch, \scratch, #0xcf	@ Preserve 32bit mode bit
+-	.if	\mode <> 0
+-	orreq	\scratch, \scratch, #((\mode) & 0xf) + ((\mode) >> 20)
+-	.endif
+-	msreq	CPSR_c, \scratch
++	msreq	CPSR_c, #((\mode) & 0xf) + ((\mode) >> 20) + 0x10 
+ 	mov	a1, a1	@ Avoid StrongARM MSR bug
+ 	.endm
+ 
+Index: recipe/files/gcc/libunixlib/sys/_getcpuarch.s
+===================================================================
+--- recipe/files/gcc/libunixlib/sys/_getcpuarch.s	(revision 7220)
++++ recipe/files/gcc/libunixlib/sys/_getcpuarch.s	(working copy)
+@@ -19,8 +19,10 @@
+ 	STMFD	R13!, {R14}
+ 	MRS	a2, CPSR
+ 	SWI	XOS_EnterOS
+-	MVNVS	a1, #0
+-	MRCVC	p15, 0, a1, c0, c0, 0	@ get CPU ID
++	MRS	lr, CPSR
++	TST	lr, #0b1111
++	BEQ     user_mode
++	MRC	p15, 0, a1, c0, c0, 0	@ get CPU ID
+ 	MSR	CPSR_c, a2
+ 
+ 	@ Gets bits 15:12 which determines pre-ARM7, ARM7, or later than
+@@ -59,9 +61,8 @@
+ 	@ Use the cache type register to work out if we're on ARMv6
+ 	@ or ARMv7 (or above)
+ 	MRS	a2, CPSR
+-	SWI	XOS_EnterOS
+-	MVNVS	a1, #0
+-	MRCVC	p15, 0, a1, c0, c0, 1	@ get cache type register
++	SWI	OS_EnterOS
++	MRC	p15, 0, a1, c0, c0, 1	@ get cache type register
+ 	MSR	CPSR_c, a2
+ 	TST	a1, #0x80000000		@ ARMv6 or ARMv7 format?
+ 	MOVNE	a1, #7
+@@ -89,4 +90,9 @@
+ 	MOVEQ	a1, #3			@ ARM6x0, architecture 3
+ 	MOVNE	a1, #0			@ Unknown !
+ 	LDMFD	R13!, {PC}
++
++user_mode:
++	SWI	XOS_LeaveOS
++	MOV	a1, #0
++	LDMFD	R13!, {PC}
+ 	DECLARE_FUNCTION __get_cpu_arch
+Index: riscos/soloader/module2/som_startapp.s
+===================================================================
+--- riscos/soloader/module2/som_startapp.s	(revision 7220)
++++ riscos/soloader/module2/som_startapp.s	(working copy)
+@@ -7,6 +7,7 @@
+ .set	OS_Exit,		0x11
+ .set	XOS_ReadSysInfo,	0x000058 + (1<<17)
+ .set	XOS_TaskControl,	0x000078 + (1<<17)
++.set	XOS_LeaveOS,		0x00007C + (1<<17)
+ 
+ @ This is too low level to be written in C.
+ @ Flatten the SVC stack, enter USR mode, set up registers
+@@ -46,11 +47,8 @@
+ 
+ som_start_app_gousr:
+ 	@ Change to USR mode
+-	TEQ	pc, pc
+-	TEQNEP	pc, #0
+-	MRSEQ	r0, CPSR
+-	BICEQ	r0, r0, #0xCF
+-	MSREQ	CPSR_c, r0
++	SWI	XOS_LeaveOS
++	TEQVSP	pc, #0
+ 	MOV	r0, r0		@ NOP
+ 
+ 	@ Initialise frame pointer

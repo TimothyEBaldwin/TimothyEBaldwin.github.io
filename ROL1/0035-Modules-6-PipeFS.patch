@@ -1,0 +1,39 @@
+From 42f433fb1fa4b45fceee2a55cccbbad8cfca90be Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Thu, 24 Oct 2013 00:25:36 +0100
+Subject: [PATCH 35/35] Modules 6 - PipeFS
+
+---
+ castle/RiscOS/BuildSys/Components/ROOL/Linux  | 2 +-
+ castle/RiscOS/Sources/FileSys/PipeFS/s/PipeFS | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/castle/RiscOS/BuildSys/Components/ROOL/Linux b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+index cda9457..bd38207 100644
+--- a/castle/RiscOS/BuildSys/Components/ROOL/Linux
++++ b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+@@ -94,7 +94,7 @@ International -type EXP
+ Obey
+ #ParallelDeviceDriver
+ #Pinboard
+-#PipeFS
++PipeFS
+ #RAMFSFiler
+ #ResourceFiler
+ #ROMFonts
+diff --git a/castle/RiscOS/Sources/FileSys/PipeFS/s/PipeFS b/castle/RiscOS/Sources/FileSys/PipeFS/s/PipeFS
+index 61ba274..efd0d1e 100644
+--- a/castle/RiscOS/Sources/FileSys/PipeFS/s/PipeFS
++++ b/castle/RiscOS/Sources/FileSys/PipeFS/s/PipeFS
+@@ -73,6 +73,8 @@ Module_BaseAddr
+         GBLL    debugxx
+         GBLL    hostvdu
+ 
++ParaVirt SETL   false
++
+ debug   SETL    false                    ; set to true, then turn on individual areas
+ debugup SETL    debug :LAND: false
+ debugrg SETL    debug :LAND: false
+-- 
+1.8.4.rc3
+

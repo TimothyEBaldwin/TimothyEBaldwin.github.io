@@ -1,0 +1,120 @@
+From 5d3f5da42489180c2d92a1f7602115a8550565f2 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Sat, 2 Nov 2013 19:37:12 +0000
+Subject: [PATCH 12/35] Added dummy PVOps file to HdrSrc
+
+---
+ castle/RiscOS/Sources/Programmer/HdrSrc/Makefile   |  2 +
+ .../Sources/Programmer/HdrSrc/hdr/CPU/Generic32    |  2 +
+ .../RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps | 66 ++++++++++++++++++++++
+ 3 files changed, 70 insertions(+)
+ create mode 100644 castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps
+
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile b/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile
+index 543aeca..7a9a31b 100644
+--- a/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile
+@@ -65,6 +65,7 @@ EXPORTS   = \
+  ${HDRDIR}.CPU.FPA \
+  ${HDRDIR}.CPU.Generic26 \
+  ${HDRDIR}.CPU.Generic32 \
++ ${HDRDIR}.CPU.PVOps \
+  ${HDRDIR}.DDVMacros \
+  ${HDRDIR}.Debug \
+  ${HDRDIR}.Devices \
+@@ -299,6 +300,7 @@ ${HDRDIR}.CPU.ARM600:        hdr.CPU.ARM600;        ${CP} hdr.CPU.ARM600
+ ${HDRDIR}.CPU.FPA:           hdr.CPU.FPA;           ${CP} hdr.CPU.FPA              $@ ${CPFLAGS}
+ ${HDRDIR}.CPU.Generic26:     hdr.CPU.Generic26;     ${CP} hdr.CPU.Generic26        $@ ${CPFLAGS}
+ ${HDRDIR}.CPU.Generic32:     hdr.CPU.Generic32;     ${CP} hdr.CPU.Generic32        $@ ${CPFLAGS}
++${HDRDIR}.CPU.PVOps:         hdr.CPU.PVOps;         ${CP} hdr.CPU.PVOps            $@ ${CPFLAGS}
+ ${HDRDIR}.FDC.FDC711:        hdr.FDC.FDC711;        ${CP} hdr.FDC.FDC711           $@ ${CPFLAGS}
+ ${HDRDIR}.IO.GenericIO:      hdr.IO.GenericIO;      ${CP} hdr.IO.GenericIO         $@ ${CPFLAGS}
+ ${HDRDIR}.IO.IOC:            hdr.IO.IOC;            ${CP} hdr.IO.IOC               $@ ${CPFLAGS}
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic32 b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic32
+index 6144b12..15ee46b 100644
+--- a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic32
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic32
+@@ -95,6 +95,8 @@ r13_und         RN      13
+ r14_und         RN      14
+ lr_und          RN      14
+ 
++        GET     Hdr:CPU.PVOps
++
+  [ :LNOT: No32bitCode
+ 
+         ; 32 bit versions of the macros in Generic26
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps
+new file mode 100644
+index 0000000..e70c701
+--- /dev/null
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/PVOps
+@@ -0,0 +1,66 @@
++;
++; Copyright (c) 2013, Timothy Baldwin
++; All rights reserved.
++;
++; Redistribution and use in source and binary forms, with or without
++; modification, are permitted provided that the following conditions are met:
++;     * Redistributions of source code must retain the above copyright
++;       notice, this list of conditions and the following disclaimer.
++;     * Redistributions in binary form must reproduce the above copyright
++;       notice, this list of conditions and the following disclaimer in the
++;       documentation and/or other materials provided with the distribution.
++;     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++;       may be used to endorse or promote products derived from this software
++;       without specific prior written permission.
++;
++; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++; POSSIBILITY OF SUCH DAMAGE.
++;
++
++; See the Linux branch for a meaningful version of this file.
++; This version is for compatibility only.
++
++        GBLA    PVOpsRelocation
++PVOpsRelocation SETA 0
++
++        MACRO
++        PVOpsImports
++        MEND
++
++        MACRO
++        PVJumpTable
++        MEND
++
++        MACRO
++        InitPVOps
++        MEND
++
++        MACRO
++$label  vMRS$c  $reg, $psr
++$label  MRS$c   $reg, $psr
++        MEND
++
++        MACRO
++$label  vMSR$c  $psr, $op2a, $op2b
++        [ "$op2b" = ""
++$label  MSR$c   $psr, $op2a
++        |
++$label  MSR$c   $psr, $op2a, $op2b
++        ]
++        MEND
++
++        MACRO
++$label  MOVS_PC_LR $c
++$label  MOV$c.S pc, lr
++        MEND
++
++        END
+-- 
+1.8.4.rc3
+

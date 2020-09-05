@@ -1,0 +1,101 @@
+From 569eccb40624ae914fb5f41f22f95454f2688ca8 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Sun, 20 Oct 2013 21:06:37 +0100
+Subject: [PATCH 13/35] Use vMRS and vMSR in AsmUtils.
+
+---
+ castle/RiscOS/Sources/Lib/AsmUtils/s/callbacks | 10 ++++++----
+ castle/RiscOS/Sources/Lib/AsmUtils/s/irqs      | 14 ++++++++------
+ 2 files changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Lib/AsmUtils/s/callbacks b/castle/RiscOS/Sources/Lib/AsmUtils/s/callbacks
+index 32ec028..6bdcf56 100644
+--- a/castle/RiscOS/Sources/Lib/AsmUtils/s/callbacks
++++ b/castle/RiscOS/Sources/Lib/AsmUtils/s/callbacks
+@@ -35,6 +35,8 @@
+         GET     hdr:Machine.<Machine>
+         GET     hdr:APCS.<APCS>
+ 
++        PVOpsImports
++
+ ; This function is currently known under many different names.
+ ; Until they all synchronise (on usermode_donothing), export the
+ ; aliases too.
+@@ -65,17 +67,17 @@ usermode_donothing
+         ; The 26 bit case preserves flags, so works with APCS-R (and APCS-32)
+         TEQ     pc, pc
+         TEQNEP  pc, #0                  ; Set USR mode, IRQs and FIQs enabled
+-        MRSEQ   r3, CPSR                ; Get current PSR
++        vMRSEQ  r3, CPSR                ; Get current PSR
+         BICEQ   r3, r3, #I32_bit :OR: F32_bit :OR: 2_1111
+-        MSREQ   CPSR_c, r3              ; Set USR26/USR32 mode, IRQs and FIQs enabled
++        vMSREQ  CPSR_c, r3              ; Set USR26/USR32 mode, IRQs and FIQs enabled
+     |
+       [ :LNOT: No26bitCode
+         TEQP    pc, #0                  ; Set USR mode, IRQs and FIQs enabled
+       ]
+       [ :LNOT: No32bitCode
+-        MRS     r3, CPSR                ; Get current PSR
++        vMRS    r3, CPSR                ; Get current PSR
+         BIC     r3, r3, #I32_bit :OR: F32_bit :OR: 2_1111
+-        MSR     CPSR_c, r3              ; Set USR26/USR32 mode, IRQs and FIQs enabled
++        vMSR    CPSR_c, r3              ; Set USR26/USR32 mode, IRQs and FIQs enabled
+       ]
+     ]
+         SWI     XOS_LeaveOS             ; SWI call from USR mode with interrupts enabled triggers callbacks
+diff --git a/castle/RiscOS/Sources/Lib/AsmUtils/s/irqs b/castle/RiscOS/Sources/Lib/AsmUtils/s/irqs
+index 6af3597..2920eaf 100644
+--- a/castle/RiscOS/Sources/Lib/AsmUtils/s/irqs
++++ b/castle/RiscOS/Sources/Lib/AsmUtils/s/irqs
+@@ -38,6 +38,8 @@
+         EXPORT  ensure_irqs_on
+         EXPORT  restore_irqs
+ 
++        PVOpsImports
++
+         GBLS    cond
+         
+         AREA    |AsmUtils$irqs$$Code|, CODE, READONLY, PIC
+@@ -59,10 +61,10 @@ cond    SETS    "AL"
+         ORR$cond.S pc, lr, #I_bit
+       ]
+       [ :LNOT: No32bitCode
+-        MRS     r0, CPSR
++        vMRS    r0, CPSR
+         ORR     r1, r0, #I32_bit        ; set IRQs
+         TEQ     r0, r1                  ; any change?
+-        MSRNE   CPSR_c, r1              ; disable IRQs if enabled before
++        vMSRNE  CPSR_c, r1              ; disable IRQs if enabled before
+         AND     r0, r0, #I32_bit        ; return previous state of bit
+         Return  ,LinkNotStacked
+       ]
+@@ -84,11 +86,11 @@ cond    SETS    "AL"
+         ORR$cond.S pc, lr, r0
+       ]
+       [ :LNOT: No32bitCode
+-        MRS     r1, CPSR                ; obtain current PSR
++        vMRS    r1, CPSR                ; obtain current PSR
+         BIC     r2, r1, #I32_bit        ; clear IRQ bit
+         ORR     r2, r2, r0              ; restore state from parameter
+         TEQ     r1, r2                  ; changed?
+-        MSRNE   CPSR_c, r2              ; update PSR if it has changed
++        vMSRNE  CPSR_c, r2              ; update PSR if it has changed
+         Return  ,LinkNotStacked
+       ]
+ 
+@@ -108,10 +110,10 @@ cond    SETS    "AL"
+         BIC$cond.S pc, lr, #I_bit
+       ]
+       [ :LNOT: No32bitCode
+-        MRS     r0, CPSR
++        vMRS    r0, CPSR
+         BIC     r1, r0, #I32_bit        ; enable IRQs
+         TEQ     r0, r1                  ; any change?
+-        MSRNE   CPSR_c, r1              ; enable IRQs if disabled before
++        vMSRNE  CPSR_c, r1              ; enable IRQs if disabled before
+         AND     r0, r0, #I32_bit        ; return previous state of bit
+         Return  ,LinkNotStacked
+       ]
+-- 
+1.8.4.rc3
+

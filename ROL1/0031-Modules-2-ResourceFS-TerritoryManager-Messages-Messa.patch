@@ -1,0 +1,107 @@
+From a00ee5820ed378e049bad871bfdb086e6bbab0d1 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Thu, 24 Oct 2013 00:06:26 +0100
+Subject: [PATCH 31/35] Modules 2 - ResourceFS, TerritoryManager, Messages,
+ MessageTrans and UK
+
+---
+ castle/RiscOS/BuildSys/Components/ROOL/Linux                   | 10 +++++-----
+ .../RiscOS/Sources/FileSys/ResourceFS/ResourceFS/s/ResourceFS  |  2 ++
+ castle/RiscOS/Sources/Internat/MsgTrans/s/MsgTrans             |  1 +
+ castle/RiscOS/Sources/Internat/Territory/Manager/s/SWIs        |  2 ++
+ castle/RiscOS/Sources/Internat/Territory/Manager/s/TerrMgr     |  4 ++++
+ castle/RiscOS/Sources/Kernel/s/NewReset                        |  3 ---
+ 6 files changed, 14 insertions(+), 8 deletions(-)
+
+diff --git a/castle/RiscOS/BuildSys/Components/ROOL/Linux b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+index fb9c49b..5f6a4e2 100644
+--- a/castle/RiscOS/BuildSys/Components/ROOL/Linux
++++ b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+@@ -43,11 +43,11 @@ HAL_Linux             -options ADDRESS=0x30400000
+ Kernel                -at 0x30410000
+ Podule -type EXP
+ FileSwitch
+-ResourceFS -type EXP
+-TerritoryManager -type EXP
+-Messages -type EXP
+-MessageTrans -type EXP
+-#UK
++ResourceFS
++TerritoryManager
++Messages
++MessageTrans
++UK
+ WindowManager -type EXP
+ #WindowManager         -options OPTIONS=Ursula
+ TaskManager -type EXP
+diff --git a/castle/RiscOS/Sources/FileSys/ResourceFS/ResourceFS/s/ResourceFS b/castle/RiscOS/Sources/FileSys/ResourceFS/ResourceFS/s/ResourceFS
+index b4220c5..7077af8 100644
+--- a/castle/RiscOS/Sources/FileSys/ResourceFS/ResourceFS/s/ResourceFS
++++ b/castle/RiscOS/Sources/FileSys/ResourceFS/ResourceFS/s/ResourceFS
+@@ -86,6 +86,8 @@ Module_BaseAddr
+         GBLL    hostvdu
+ 	GBLL	allowbooting			; Added by Rich, 16-Aug-95, allows a !Boot to be registered and booted
+ 
++ParaVirt        SETL false
++
+ debug           SETL false
+ debugrg         SETL true :LAND: debug
+ debugfs         SETL true :LAND: debug
+diff --git a/castle/RiscOS/Sources/Internat/MsgTrans/s/MsgTrans b/castle/RiscOS/Sources/Internat/MsgTrans/s/MsgTrans
+index 91b498c..8531fab 100644
+--- a/castle/RiscOS/Sources/Internat/MsgTrans/s/MsgTrans
++++ b/castle/RiscOS/Sources/Internat/MsgTrans/s/MsgTrans
+@@ -60,6 +60,7 @@ keepstats       SETL   {TRUE}
+         ! 0, "WARNING: Keeping usage count statistics"
+     ]
+ 
++ParaVirt        SETL   {FALSE}
+ debug           SETL   {FALSE}
+ debugswi        SETL   debug :LAND: {TRUE}
+ debugxx         SETL   debug :LAND: {TRUE}
+diff --git a/castle/RiscOS/Sources/Internat/Territory/Manager/s/SWIs b/castle/RiscOS/Sources/Internat/Territory/Manager/s/SWIs
+index c811658..52c3ce7 100644
+--- a/castle/RiscOS/Sources/Internat/Territory/Manager/s/SWIs
++++ b/castle/RiscOS/Sources/Internat/Territory/Manager/s/SWIs
+@@ -27,7 +27,9 @@ ticksperyear    * ticksperday    * 365  ; &BBF81E00
+ Territory_SWIdecode
+         Push    "LR"
+ 
++     [ :LNOT: MyParaVirt
+         CLRPSR  I_bit,R14                       ; re-enable interrupts
++     ]
+ 
+         LDR     wp,[R12]                        ; wp --> workspace
+ 
+diff --git a/castle/RiscOS/Sources/Internat/Territory/Manager/s/TerrMgr b/castle/RiscOS/Sources/Internat/Territory/Manager/s/TerrMgr
+index f29c89e..071568d 100644
+--- a/castle/RiscOS/Sources/Internat/Territory/Manager/s/TerrMgr
++++ b/castle/RiscOS/Sources/Internat/Territory/Manager/s/TerrMgr
+@@ -58,6 +58,10 @@ Module_BaseAddr
+         GBLL    debugmsg
+         GBLL    hostvdu
+ 
++        GBLL    MyParaVirt
++
++MyParaVirt      SETL    ParaVirt
++ParaVirt        SETL    {FALSE}
+ hostvdu         SETL    {TRUE}
+ debug           SETL    {FALSE}
+ debugxx         SETL    {FALSE}
+diff --git a/castle/RiscOS/Sources/Kernel/s/NewReset b/castle/RiscOS/Sources/Kernel/s/NewReset
+index 9819a18..8c10337 100644
+--- a/castle/RiscOS/Sources/Kernel/s/NewReset
++++ b/castle/RiscOS/Sources/Kernel/s/NewReset
+@@ -1584,9 +1584,6 @@ PT_lookup
+         BEQ     %FT80
+ 
+ Hortoculture_Kicking
+- [ Machine = "Linux" ; No filesystem yet, so this would break.
+-        B       %FT80
+- ]
+         MOV     R0, #FSControl_BootupFS
+         SWI     XOS_FSControl
+         BVC     %FT80
+-- 
+1.8.4.rc3
+

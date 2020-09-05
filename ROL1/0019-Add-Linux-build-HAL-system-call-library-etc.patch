@@ -1,0 +1,2630 @@
+From b3a7c60c83c6649efe483f71242a4f23358b60c2 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Sun, 29 Sep 2013 20:52:01 +0100
+Subject: [PATCH 19/35] Add Linux build, HAL, system call library etc.
+
+---
+ castle/RiscOS/BuildSys/Components/ROOL/Linux       | 209 +++++++++
+ castle/RiscOS/BuildSys/ImageName/SysMap            |   1 +
+ castle/RiscOS/BuildSys/ModuleDB                    |   3 +
+ castle/RiscOS/Env/ROOL/Linux,feb                   |  34 ++
+ mixed/RiscOS/Sources/Linux/HAL/Makefile            |  50 +++
+ mixed/RiscOS/Sources/Linux/HAL/c/Init              | 296 ++++++++++++
+ mixed/RiscOS/Sources/Linux/HAL/c/Main              | 495 +++++++++++++++++++++
+ mixed/RiscOS/Sources/Linux/HAL/h/header            | 101 +++++
+ mixed/RiscOS/Sources/Linux/HAL/s/CLib              | 167 +++++++
+ mixed/RiscOS/Sources/Linux/HAL/s/PVOps             | 240 ++++++++++
+ mixed/RiscOS/Sources/Linux/HAL/s/Tests             | 211 +++++++++
+ mixed/RiscOS/Sources/Linux/HAL/s/Top               | 201 +++++++++
+ mixed/RiscOS/Sources/Linux/Headers/CopyHeaders     |  58 +++
+ mixed/RiscOS/Sources/Linux/Headers/Makefile        |  40 ++
+ mixed/RiscOS/Sources/Linux/Headers/Update.sh       |  63 +++
+ mixed/RiscOS/Sources/Linux/Syscalls/GenSyscall,102 | 191 ++++++++
+ mixed/RiscOS/Sources/Linux/Syscalls/Makefile       |  44 ++
+ mixed/RiscOS/Sources/Linux/Syscalls/SysCallAsm,102 |  56 +++
+ 18 files changed, 2460 insertions(+)
+ create mode 100644 castle/RiscOS/BuildSys/Components/ROOL/Linux
+ create mode 100644 castle/RiscOS/Env/ROOL/Linux,feb
+ create mode 100644 mixed/RiscOS/Sources/Linux/HAL/Makefile
+ create mode 100644 mixed/RiscOS/Sources/Linux/HAL/c/Init
+ create mode 100644 mixed/RiscOS/Sources/Linux/HAL/c/Main
+ create mode 100644 mixed/RiscOS/Sources/Linux/HAL/h/header
+ create mode 100644 mixed/RiscOS/Sources/Linux/HAL/s/CLib
+ create mode 100644 mixed/RiscOS/Sources/Linux/HAL/s/PVOps
+ create mode 100644 mixed/RiscOS/Sources/Linux/HAL/s/Tests
+ create mode 100644 mixed/RiscOS/Sources/Linux/HAL/s/Top
+ create mode 100644 mixed/RiscOS/Sources/Linux/Headers/CopyHeaders
+ create mode 100644 mixed/RiscOS/Sources/Linux/Headers/Makefile
+ create mode 100755 mixed/RiscOS/Sources/Linux/Headers/Update.sh
+ create mode 100644 mixed/RiscOS/Sources/Linux/Syscalls/GenSyscall,102
+ create mode 100644 mixed/RiscOS/Sources/Linux/Syscalls/Makefile
+ create mode 100644 mixed/RiscOS/Sources/Linux/Syscalls/SysCallAsm,102
+
+diff --git a/castle/RiscOS/BuildSys/Components/ROOL/Linux b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+new file mode 100644
+index 0000000..fb9c49b
+--- /dev/null
++++ b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+@@ -0,0 +1,209 @@
++#------------------------------------------------------------------------------
++# Components file for Linux build
++#------------------------------------------------------------------------------
++%BaseAddress   0x30400000
++%Image         Build$ImageName
++%Log           Build$ImageName
++%Messages      castle.RiscOS.Sources.Internat.Messages
++%Joiner        romlinker
++%JoinerFormat  romlinker
++%noimagesize
++
++# BBE Support
++BuildApps
++BuildExport
++BuildSystem             -options COMPONENTFILE=Linux COMPONENTFILE2=Universal
++BuildEnvironment        -options ENVFILE=Linux
++BuildModules
++BuildTools
++
++#------------------------------------------------------------------------------
++# some headers
++#
++HdrSrc                -type EXP
++LinuxHeaders          -type EXP
++LinuxSyscalls         -type EXP
++#------------------------------------------------------------------------------
++# we need the following exported for swis.h generation
++# change the type to EXP
++#
++DDEUtils              -type EXP
++#Econet                -type EXP
++#DDT                   -type EXP
++HostFS                -type EXP
++#SCSIDriver            -type EXP
++#PCCardFS              -type EXP
++#PDriver               -type EXP
++#PDumperDM             -type EXP
++#MakePSFont            -type EXP
++VFPSupport            -type EXP
++
++# Kernel is first module in ROM seen as the UtilityModule
++HAL_Linux             -options ADDRESS=0x30400000
++Kernel                -at 0x30410000
++Podule -type EXP
++FileSwitch
++ResourceFS -type EXP
++TerritoryManager -type EXP
++Messages -type EXP
++MessageTrans -type EXP
++#UK
++WindowManager -type EXP
++#WindowManager         -options OPTIONS=Ursula
++TaskManager -type EXP
++# Desktop is the 11th module (default language)
++#Desktop
++#SharedRISC_OSLib
++#VIDC20Video
++#Mouse
++#PS2Driver
++#ADFSFiler
++#BASIC105
++#BASIC64
++#BASICTrans
++BufferManager -type EXP
++ColourTrans -type EXP
++#Debugger
++#DeviceFS
++#DisplayManager
++DMAManager -type EXP
++#DragASprite
++#DragAnObj
++#DrawMod
++#BBCEconet
++#FileCore
++#RamFS
++#Filer
++#FilerSWIs
++#FSLock
++FontManager -type EXP
++FPEmulator -type EXP
++#FPEmulator            -options FPE_APCS=3/32bit
++#Free
++Hourglass -type EXP
++#IIC
++International -type EXP
++#InternationalKeyboard -options KEYBOARD=All
++#ITable
++#Joystick
++#NetFS
++#NetFiler
++#NetPrint
++#NetStatus
++#Obey
++#ParallelDeviceDriver
++#Pinboard
++#PipeFS
++#RAMFSFiler
++#ResourceFiler
++#ROMFonts
++#RTCAdjust
++#ScreenBlanker
++#ScrSaver              -options SCRSAVERAPP=No
++SerialDeviceDriver -type EXP
++SerialDeviceSupport -type EXP
++#SerialMouse
++#ShellCLI
++SoundDMA -type EXP
++#SoundChannels
++#SoundScheduler
++#SpriteExtend
++#SpriteUtils
++Squash -type EXP
++#SuperSample
++#SystemDevices
++TaskWindow -type EXP
++#WindowUtils
++#FilterManager
++#WaveSynth
++#StringLib
++#Percussion
++#SharedSnd
++#Filer_Action
++#DOSFS                 -options PCMCIA=TRUE
++#ColourPicker
++#ScreenModes
++#DrawFile
++#BootCommands
++#AUNMsgs
++#MManager
++#Internet
++#Resolver
++#Net
++#BootNet
++#Freeway
++#ShareFS
++#MimeMap
++#LanManFS              -options OPTIONS=-DCHECK_ARMBOOT_EXISTS ROMSPRITES=TRUE
++#DHCP                  -options OPTIONS=-DMINIMUM_OPTIONS_LENGTH=4
++#Edit
++#Draw
++#Paint
++#Alarm
++#Chars
++#Help2
++
++#
++# Toolbox Modules/Libs
++#
++#tboxlib
++#ToolboxLib            -type EXP
++#TinyStubs
++#Toolbox
++#Window
++#ToolAction
++#Menu
++#Iconbar
++#ColourDbox
++#ColourMenu
++#DCS_Quit
++#FileInfo
++#FontDbox
++#FontMenu
++#PrintDbox
++#ProgInfo
++#SaveAs
++#Scale
++#Gadgets
++#
++# CDFS
++#
++#CDFSDriver
++#ATAPI
++#CDFS
++#CDFSFiler
++
++#UnSqzAIF
++#InetRes -options TYPE=EmergencyUtils
++HeroNames
++
++# some libraries and bits
++#
++#callx
++AsmUtils              -type EXP
++#TCPIPheaders          -type EXP
++#socklib
++#inetlib
++#unixlib
++#UnicodeLib            -type EXP
++#ConfigLib             -type EXP
++#OSLib
++#DeskLib
++#ModMallocLib
++#PlainArgvLib
++#RemoteDebug
++#PDebug
++#DDTLib
++#Wild
++#Trace
++#DebugLib
++
++NVRAM                 -type EXP
++PortManager           -type EXP
++Portable              -type EXP
++#PCI                   -type EXP
++#SCSIFS                -type EXP # Needed for header export, but depends on filecore headers
++
++ABRelease
++
++# end
+diff --git a/castle/RiscOS/BuildSys/ImageName/SysMap b/castle/RiscOS/BuildSys/ImageName/SysMap
+index 7f1c20d..e951c26 100644
+--- a/castle/RiscOS/BuildSys/ImageName/SysMap
++++ b/castle/RiscOS/BuildSys/ImageName/SysMap
+@@ -43,6 +43,7 @@ Machine
+   3:32
+   R:Morris
+   T:Tungsten
++  U:Linux
+   N:PsionNB2
+   8:CortexA8
+   9:CortexA9
+diff --git a/castle/RiscOS/BuildSys/ModuleDB b/castle/RiscOS/BuildSys/ModuleDB
+index 38244ce..88be875 100644
+--- a/castle/RiscOS/BuildSys/ModuleDB
++++ b/castle/RiscOS/BuildSys/ModuleDB
+@@ -40,6 +40,8 @@ JSLib                       C     mixed.RiscOS.Sources.Lib.JSLib
+ LDAPheaders                 EXP   closed.RiscOS.Sources.Networking.LDAP.include
+ liblber                     C     closed.RiscOS.Sources.Networking.LDAP.liblber
+ libldap                     C     closed.RiscOS.Sources.Networking.LDAP.libldap
++LinuxHeaders                EXP   mixed.RiscOS.Sources.Linux.Headers
++LinuxSyscalls               EXP   mixed.RiscOS.Sources.Linux.Syscalls
+ Mailbox                     C     closed.RiscOS.Sources.Lib.Email.Mailbox
+ MemCheckLib                 EXP   closed.RiscOS.Sources.Lib.MemCheck
+ MemLib                      C     castle.RiscOS.Sources.Lib.MemLib
+@@ -139,6 +141,7 @@ HAL_OMAP4                   HAL   castle.RiscOS.Sources.HAL.OMAP4
+ HAL_S3C2440                 HAL   castle.RiscOS.Sources.HAL.S3C2440                                     RISC_OS         S3C2440
+ HAL_S3C6410                 HAL   castle.RiscOS.Sources.HAL.S3C6410                                     RISC_OS         S3C6410
+ HAL_Tungsten                HAL   castle.RiscOS.Sources.HAL.Tungsten                                    RISC_OS         Tungsten
++HAL_Linux                   HAL   mixed.RiscOS.Sources.Linux.HAL                                        RISC_OS         HAL_Linux
+ Kernel                      KERNEL castle.RiscOS.Sources.Kernel                                         RISC_OS         Kernel
+ #--------------------------------------------------------------------------------------------------------------------------------------
+ AcornHTTP                   C     castle.RiscOS.Sources.Networking.Fetchers.HTTP                        Networking      AcornHTTP
+diff --git a/castle/RiscOS/Env/ROOL/Linux,feb b/castle/RiscOS/Env/ROOL/Linux,feb
+new file mode 100644
+index 0000000..b71e280
+--- /dev/null
++++ b/castle/RiscOS/Env/ROOL/Linux,feb
+@@ -0,0 +1,34 @@
++| This source code in this file is licensed to You by Castle Technology
++| Limited ("Castle") and its licensors on contractual terms and conditions
++| ("Licence") which entitle you freely to modify and/or to distribute this
++| source code subject to Your compliance with the terms of the Licence.
++|
++| This source code has been made available to You without any warranties
++| whatsoever. Consequently, Your use, modification and distribution of this
++| source code is entirely at Your own risk and neither Castle, its licensors
++| nor any other person who has contributed to this source code shall be
++| liable to You for any loss or damage which You may suffer as a result of
++| Your use, modification or distribution of this source code.
++|
++| Full details of Your rights and obligations are set out in the Licence.
++| You should have received a copy of the Licence with this source code file.
++| If You have not received a copy, the text of the Licence is available
++| online at www.castle-technology.co.uk/riscosbaselicence.htm
++|
++| Linux 32-bit EABI ELF executable
++|
++set Locale     UK
++set Keyboard   All
++| Hardware target
++set Machine    Linux
++| Software target
++set System     Ursula
++set UserIF     Sovereign
++set Display    PAL
++set ImageSize  2048K
++set HALSize    64K
++set Build      ROOL.Linux
++set APCS       APCS-32
++Unset LocaleList
++|
++Obey <Obey$Dir>.^.!Common
+diff --git a/mixed/RiscOS/Sources/Linux/HAL/Makefile b/mixed/RiscOS/Sources/Linux/HAL/Makefile
+new file mode 100644
+index 0000000..fa5d439
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/HAL/Makefile
+@@ -0,0 +1,50 @@
++#
++# Copyright (c) 2013, Timothy Baldwin
++# All rights reserved.
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions are met:
++#     * Redistributions of source code must retain the above copyright
++#       notice, this list of conditions and the following disclaimer.
++#     * Redistributions in binary form must reproduce the above copyright
++#       notice, this list of conditions and the following disclaimer in the
++#       documentation and/or other materials provided with the distribution.
++#     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++#       may be used to endorse or promote products derived from this software
++#       without specific prior written permission.
++#
++# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGE.
++#
++
++COMPONENT = HAL_Linux
++TARGET = HAL_Linux
++OBJS = Top Init Main CLib PVOps Tests
++LIBS=
++CMHGFILE=
++
++CUSTOMROM=custom
++
++include Makefiles:CModule
++
++ROMCSTUBS=
++CFLAGS = -depend !Depend -c -Wpn -APCS 3/32bit/nofp/noswst -I<Lib$Dir>.Linux -DADDRESS=${ADDRESS} -DHALSIZE=(${HALSize:K=}*1024)
++ASFLAGS += -APCS 3/nofp/noswst
++
++rom: ${ROM_OBJS_} ${DIRS}
++        @${ECHO} Linux HAL built
++
++install_rom: ${ROM_OBJS_} ${FORCEROMLINK} ${DIRS}
++        ${LD} -FIRST Top(HEAD) -o ${INSTDIR}.${TARGET} -bin -base ${ADDRESS} -Symbols ${INSTDIR}.${TARGET}_sym ${ROM_OBJS_}
++        @${ECHO} ${COMPONENT}: rom_link complete
++
++include Depends
+diff --git a/mixed/RiscOS/Sources/Linux/HAL/c/Init b/mixed/RiscOS/Sources/Linux/HAL/c/Init
+new file mode 100644
+index 0000000..763a1db
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/HAL/c/Init
+@@ -0,0 +1,296 @@
++/*
++ * Copyright (c) 2013, Timothy Baldwin
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *     * Redistributions of source code must retain the above copyright
++ *       notice, this list of conditions and the following disclaimer.
++ *     * Redistributions in binary form must reproduce the above copyright
++ *       notice, this list of conditions and the following disclaimer in the
++ *       documentation and/or other materials provided with the distribution.
++ *     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++ *       may be used to endorse or promote products derived from this software
++ *       without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++// In this file a Linux system call is SWI 0.
++#define LinuxSupport_Syscall 0
++
++#include <syscalls.h>
++#include <linux/fcntl.h>
++#include <linux/termios.h>
++#include <linux/wait.h>
++#include <linux/ptrace.h>
++#include <linux/personality.h>
++#include <linux/resource.h>
++#include "header.h"
++
++int strcmp(const char *a, const char *b) {
++  while (*a && *a == *b) {
++    ++a;
++    ++b;
++  }
++  return  *a - *b;
++}
++
++struct termios oldTioIn, oldTioOut, newTioIn, newTioOut;
++
++static void sigtstp_handler(int s) {
++  // Restore echo and line buffering status, then reset it upon continuing
++  sys_ioctl(0, TCSETS, &oldTioIn);
++  sys_raise(SIGSTOP);
++  sys_ioctl(0, TCSETS, &newTioIn);
++}
++
++const struct sigaction default_sigact = {
++  .sa_handler = SIG_DFL
++};
++
++const struct sigaction ignore_sigact = {
++  .sa_handler = SIG_IGN
++};
++
++static const struct sigaction sigtstp_sigact = {
++  .sa_handler = &sigtstp_handler
++};
++
++#define WIFSTOPPED(status) (((status) & 0xff) == 0x7f)
++#define WSTOPSIG(status)   (((status) & 0xff00) >> 8)
++
++static inline bool do_syscall(int child, struct vcpu* restrict vcpu) {
++  unsigned r[18];
++
++  // Read registers
++  sys_ptrace(PTRACE_GETREGS, child, 0, (int)r);
++
++  // Extract SWI number
++  unsigned swi = *(unsigned *)(r[15] - 4) & 0xFFFFFF;
++
++  if (swi == 0xC0000) {
++
++    // Moved Linux system call, set number
++    sys_ptrace(PTRACE_SET_SYSCALL, child, 0, r[7]);
++
++  } else if (swi < 0x100000 && r[15] < 0xFFFF0000) {
++
++    // RISC OS swi - adjust registers
++    vcpu->save[0] = r[0];
++    vcpu->save[1] = r[1];
++    vcpu->save[2] = r[2];
++
++    r[0] = (unsigned)vcpu;
++    r[1] = r[15];
++    r[2] = r[16];
++    r[15] = (unsigned)vcpu->Enter_SWI;
++
++    // Don't enter Linux system call.
++    sys_ptrace(PTRACE_SET_SYSCALL, child, 0, -1);
++
++    // Set registers
++    sys_ptrace(PTRACE_SETREGS, child, 0, (int)r);
++    return false;
++  }
++  return true;
++}
++
++void do_ptrace(int child) {
++  struct vcpu* vcpu = __kuser_get_tls();
++  int status;
++
++  // Set options
++  sys_waitpid(child, &status, __WALL);
++  sys_ptrace(PTRACE_SETOPTIONS, child, 0, PTRACE_O_TRACESYSGOOD);
++
++  bool in_syscall = false;
++  int signal = 0;
++  while(1) {
++
++    // Continue until SWI call (or signal).
++    sys_ptrace(PTRACE_SYSCALL, child, 0, signal);
++    sys_waitpid(child, &status, __WALL);
++
++    if (WIFSTOPPED(status) && WSTOPSIG(status) == (SIGTRAP | 0x80)) {
++      if (in_syscall) {
++        // SWI exit
++        in_syscall = false;
++      } else {
++        // SWI entry
++        in_syscall = do_syscall(child, vcpu);
++      }
++      signal = 0;
++    } else if (WIFSTOPPED(status)) {
++      signal = WSTOPSIG(status);
++    } else {
++      sys_exit(status >> 8);
++    }
++  }
++}
++
++static void move_fd(int oldfd, int newfd) {
++  if (oldfd != newfd) {
++    sys_dup3(oldfd, newfd, O_CLOEXEC);
++    sys_close(oldfd);
++  }
++}
++
++static const char help_text[] ="Command line options:\n"
++                               "  --help         Display this message\n"
++                               "  --nvram FILE   Filename for nvram\n"
++                               "  --nofork       Dont't fork - for debuging\n";
++
++int main(int argc, char **argv) {
++
++
++  // Cap number of open files so interrupts work.
++  struct rlimit rlim;
++  sys_getrlimit(RLIMIT_NOFILE, &rlim);
++  if (rlim.rlim_cur > MAX_FILES) {
++    rlim.rlim_cur = MAX_FILES;
++    sys_setrlimit(RLIMIT_NOFILE, &rlim);
++  }
++
++  bool nofork = false;
++
++  for(int i = 1; i != argc; ++i) {
++    if (!strcmp(argv[i], "--help")) {
++
++      // Display help text.
++      sys_MESSAGE(1, help_text);
++      return 0;
++
++    } else if (!strcmp(argv[i], "--nvram")) {
++
++      // Open NVRAM file.
++      int fd = sys_open(argv[++i], O_RDWR | O_CREAT | O_CLOEXEC, 0666); // FIXME Permissions?
++      if (fd < 0) {
++        sys_MESSAGE(2, "Unable to open NVRAM file.\n");
++        return 1;
++      }
++
++      // Read it's size.
++      struct stat s;
++      if (sys_fstat(fd, &s)) {
++        sys_MESSAGE(2, "Unable to read size of NVRAM file.\n");
++        return 1;
++      }
++
++      // Ensure it is at least 256 bytes long.
++      if (s.st_size < 256 && sys_ftruncate(fd, 256)) {
++        sys_MESSAGE(2, "Unable to enlarge NVRAM file.\n");
++        return 1;
++      }
++
++      // Move it to NVRAM_FD
++      move_fd(fd, NVRAM_FD);
++
++    } else if (!strcmp(argv[i], "--nofork")) {
++      nofork = true;
++    } else {
++
++      // Display help text.
++      sys_MESSAGE(2, "Syntax error\n");
++      sys_MESSAGE(2, help_text);
++      return 1;
++
++    }
++  }
++
++  // Ignore SIGINT so restoring the terminal is possible.
++  sys_sigaction(SIGINT, &ignore_sigact, 0);
++
++  // Disable terminal echo.
++  sys_ioctl(0, TCGETS, &oldTioIn);
++  newTioIn = oldTioIn;
++  newTioIn.c_iflag &= ~IGNCR & ~INLCR;
++  newTioIn.c_cc[VMIN] = 1;
++  newTioIn.c_cc[VTIME] = 0;
++  newTioIn.c_lflag &= ~ICANON & ~ECHO;
++  sys_sigaction(SIGTSTP, &sigtstp_sigact, 0);
++  sys_ioctl(0, TCSETS, &newTioIn);
++
++  // Set TLS pointer to vcpu struct.
++  sys_set_tls(&init_vcpu);
++
++  int result;
++  do {
++    int pid = nofork ? 0 : sys_fork();
++    if (pid < 0) {
++      sys_MESSAGE(2, "Unable to fork\n");
++      return 2;
++    } else if (pid == 0) {
++      sys_sigaction(SIGINT, &default_sigact, 0);
++      sys_sigaction(SIGTSTP, &default_sigact, 0);
++
++      // Try to set RISC OS personality
++      sys_personality(PER_RISCOS);
++
++      // Try turning on SWI intercept
++      // SEGV on failure, so ignore it.
++      sys_sigaction(SIGSEGV, &ignore_sigact, 0);
++      __asm {
++        MOV     r0, #1
++        MOV     r7, #-1 // Not a Linux System call
++        MSR     CPSR_f, #PSR_V_BIT
++        SWI     0xC0001, {r0, r7, psr}, {psr}, {r0}
++
++        // Restore SYGSEGV default
++        MOV     r0, SIGSEGV
++        MOV     r1, &default_sigact
++        MOV     r2, #0
++        MOV     r7, #__NR_sigaction
++        SWIVS   0, {r0-r2, r7}, {r0}, {}
++        SWIVC   0xC0000, {r0-r2, r7}, {r0}, {}
++
++        BVC     swi_on // If sucessful
++      }
++
++      // Failed, use ptrace.
++      sys_MESSAGE(2, "Personality not availiable so using ptrace - This maybe slow.\n");
++
++      // Start ptrace thread.
++      if (start_ptrace()) {
++        sys_MESSAGE(2, "Unable to start ptrace thread.\n");
++        sys_exit(2);
++      }
++
++      // This is the child, start tracing.
++      sys_ptrace(PTRACE_TRACEME, 0, 0, 0);
++      sys_raise(SIGTRAP);
++
++      swi_on:
++      // Any more Linux system calls in this file will call OS_WriteC instead!
++      // So go to the next file which uses a RISC OS compatable SWI interface.
++      hal_run(); // Doesn't return
++    }
++
++    // Wait for RISC OS to exit.
++    while(sys_wait(&result) < 0);
++
++    // Write a new line to keep output tidy.
++    sys_MESSAGE(2, "\n");
++
++    // And reboot if requested.
++  } while(result == 0);
++
++  // Restore terminal status
++  sys_ioctl(0, TCSETS, &oldTioIn);
++
++  // Adjust exit status
++  result >>= 8;
++  if (result == 1) result = 0;
++  return result;
++}
+diff --git a/mixed/RiscOS/Sources/Linux/HAL/c/Main b/mixed/RiscOS/Sources/Linux/HAL/c/Main
+new file mode 100644
+index 0000000..4e51276
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/HAL/c/Main
+@@ -0,0 +1,495 @@
++/*
++ * Copyright (c) 2013, Timothy Baldwin
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *     * Redistributions of source code must retain the above copyright
++ *       notice, this list of conditions and the following disclaimer.
++ *     * Redistributions in binary form must reproduce the above copyright
++ *       notice, this list of conditions and the following disclaimer in the
++ *       documentation and/or other materials provided with the distribution.
++ *     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++ *       may be used to endorse or promote products derived from this software
++ *       without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++
++#include <stdlib.h>
++
++#include <syscalls.h>
++#include <linux/time.h>
++#include <linux/signal.h>
++#include <linux/ptrace.h>
++#include <linux/stat.h>
++#include <asm/fcntl.h>
++#include <asm/sigcontext.h>
++
++#include "header.h"
++
++struct ucontext {
++  unsigned long     uc_flags;
++  struct ucontext  *uc_link;
++  stack_t           uc_stack;
++  struct sigcontext uc_mcontext;
++  sigset_t          uc_sigmask;
++};
++
++struct Irq irqs[IRQS];
++volatile int irq_list = -1;
++
++static void add_irq(struct vcpu* vcpu, int irq) {
++  int old_list;
++  if (!(irqs[irq].next || __kuser_cmpxchg(0, -1, &irqs[irq].next))) do {
++    old_list = irq_list;
++    irqs[irq].next = old_list;
++  } while(__kuser_cmpxchg(old_list, irq, &irq_list));
++  vcpu->irq_pending = PSR_I_BIT;
++}
++
++int strlen(const char *s) {
++  int len = 0;
++  while(s[len]) ++len;
++  return len;
++}
++
++static void message(const char *s) {
++  // Write message to standard output steam, for HAL debuging.
++  sys_write(2, s, strlen(s));
++}
++
++static void printu(unsigned i) {
++  char buf[11];
++  char *p = buf + 10;
++  *p = 0;
++  do {
++    *--p = '0' + (i % 10);
++    i = i / 10;
++  } while (i);
++  message(p);
++}
++
++
++unsigned int HAL_CleanerSpace(void) {
++  return 0xFFFFFFFF;
++}
++
++// Miscellaneous HAL API
++
++void *HAL_ControllerAddress(unsigned ignored,unsigned controller) {
++  sys_MESSAGE(2, "HAL_ControllerAddress\n");
++  return (void *)-1;
++}
++
++int HAL_DebugRX(void) {
++  // Try to read from standard input steam.
++  char c;
++  int r = sys_read(0, &c, 1);
++  return r == 1 ? c : -1;
++}
++
++void HAL_DebugTX(int byte) {
++  // Try to write to standard output steam.
++  if (byte == 127) {
++    sys_write(1, "\b \b", 3);
++  } else {
++    char c = byte;
++    sys_write(1, &c, 1);
++  }
++}
++
++void HAL_InitDevices(uint32_t flags) {
++}
++
++void HAL_Init(unsigned int *riscos_header, void *unacheable_ws) {
++}
++
++void HAL_PlatformInfo(int ignored, unsigned int *flags, unsigned int *validflags) {
++  // FIXME
++  sys_MESSAGE(2, "HAL_PlatformInfo\n");
++}
++
++void HAL_Reset(int type, void *l1pt) {
++  sys_exit(!type);
++}
++
++// HAL counter API
++
++unsigned int counter_resolution, counter_rate;
++
++static inline void init_counter(void) {
++  struct timespec t;
++  sys_clock_getres(CLOCK_MONOTONIC_RAW, &t);
++  counter_resolution = t.tv_nsec;
++  counter_rate = 1000000000 / counter_resolution;
++}
++
++unsigned int HAL_CounterRate(void) {
++  return counter_rate;
++}
++
++unsigned int HAL_CounterPeriod(void) {
++  return counter_rate; // Lie - one second
++}
++
++unsigned int HAL_CounterRead(void) {
++  struct timespec t;
++  sys_clock_gettime(CLOCK_MONOTONIC, &t);
++  return counter_rate - t.tv_nsec / counter_resolution;
++}
++
++void HAL_CounterDelay(unsigned int microseconds) {
++  struct timespec t;
++  t.tv_sec = microseconds / 1000000;
++  t.tv_nsec = (microseconds % 1000000) * 1000;
++  while(sys_nanosleep(&t, &t));
++}
++
++
++// HAL interrupt handling
++
++int HAL_IRQMax(void) {
++  sys_MESSAGE(2, "HAL_IRQMax\n");
++  return IRQS;
++}
++
++void HAL_IRQClear(int device) {
++
++  // Decrement irqs[device].pending by one atomically.
++  unsigned old;
++  do {
++    old = irqs[device].pending;
++  } while (old && __kuser_cmpxchg(old, old - 1, &irqs[device].pending));
++
++  // Check if interupts are still pending.
++  HAL_IRQSource();
++}
++
++int HAL_IRQDisable(int device) {
++  int ret = irqs[device].enabled;
++  irqs[device].enabled = false;
++  HAL_IRQSource();
++  return ret;
++}
++
++int HAL_IRQEnable(int device) {
++  int ret = irqs[device].enabled;
++
++  irqs[device].enabled = true;
++
++  if (!ret && irqs[device].pending) {
++    struct vcpu* vcpu = __kuser_get_tls();
++    irqs[device].pending = 1; // Lose timer interrupts
++    add_irq(vcpu, device); // Trigger pending interrupt
++    call_irq(vcpu);
++  }
++  return ret;
++}
++
++int HAL_IRQSource(void) {
++  int i;
++  struct vcpu* vcpu = __kuser_get_tls();
++
++again:
++  i = irq_list;
++
++  if (i == -1) {
++    // List empty, so no active irqs.
++    vcpu->irq_pending = 0;
++
++    if (irq_list != -1) {
++      // It's no longer empty, so undo and try again.
++      vcpu->irq_pending = PSR_I_BIT;
++      goto again;
++    }
++    return -1;
++  }
++
++  // If top of list is pending, it's the one we want.
++  if (irqs[i].enabled && irqs[i].pending) return i;
++
++  // Top of list is not active, try to remove it.
++  if (__kuser_cmpxchg(i, irqs[i].next, &irq_list)) goto again;
++  irqs[i].next = 0;
++
++  // If it has become pending whilst removing it, add it back.
++  if (irqs[i].enabled && irqs[i].pending) add_irq(vcpu, i);
++
++  goto again;
++}
++
++int HAL_IRQStatus(int device) {
++  return irqs[device].pending;
++}
++
++
++// HAL Keyboard API
++
++unsigned int HAL_KbdScan(void) {
++  return KbdFlag_Done;
++}
++
++
++// HAL NVRAM API
++
++unsigned int HAL_NVMemoryType(void) {
++  return NVMemoryFlag_HAL | NVMemoryFlag_LowRead | NVMemoryFlag_LowWrite;
++}
++
++unsigned int HAL_NVMemorySize(void) {
++  struct stat s;
++  s.st_size = 256;
++  sys_fstat(NVRAM_FD, &s);
++  return s.st_size;
++}
++
++uint32_t HAL_NVMemoryPageSize(void) {
++  return 256;
++}
++
++unsigned int HAL_NVMemoryProtectedSize(void) {
++  return 0;
++}
++
++int HAL_NVMemoryRead(unsigned int addr, void *buffer, unsigned int n) {
++  int c = sys_pread(NVRAM_FD, buffer, n, addr);
++  if (c < 0) c = 0;
++  return c;
++}
++
++int HAL_NVMemoryWrite(unsigned int addr, void *buffer, unsigned int n) {
++  int c = sys_pwrite(NVRAM_FD, buffer, n, addr);
++  if (c < 0) c = 0;
++  return c;
++}
++
++
++
++// HAL timer API
++
++struct {
++  timer_t id;
++  bool created;
++} timers[TIMERS];
++
++static inline void init_timer(int timer) {
++  if (!timers[timer].created) {
++    struct sigevent se = {
++      .sigev_notify = SIGEV_SIGNAL,
++      .sigev_signo = SIGALRM,
++      .sigev_value.sival_int = timer + TIMER_IRQ_BASE,
++      .sigev_notify_thread_id = sys_gettid(),
++    };
++    sys_timer_create(CLOCK_MONOTONIC, &se, &timers[timer].id);
++    timers[timer].created = true;
++  }
++}
++
++int HAL_Timers(void) {
++  return TIMERS;
++}
++
++unsigned int HAL_TimerDevice(int timer) {
++  return timer + TIMER_IRQ_BASE;
++}
++
++void HAL_TimerSetPeriod(int timer, unsigned int period) {
++  init_timer(timer);
++  struct itimerspec it;
++  it.it_interval.tv_sec = period / TIMER_GRANULARITY;
++  it.it_interval.tv_nsec = (period % TIMER_GRANULARITY) * (1000000000U / TIMER_GRANULARITY);
++
++  // FIXME: What should the intial value be?
++  it.it_value.tv_sec = it.it_interval.tv_sec / 2U;
++  it.it_value.tv_nsec = it.it_interval.tv_nsec + (it.it_interval.tv_sec % 2U) * 500000000U;
++  sys_timer_settime(timers[timer].id, 0, &it, 0);
++}
++
++unsigned int HAL_TimerGranularity(int timer) {
++  return TIMER_GRANULARITY;
++}
++
++unsigned int HAL_TimerMaxPeriod(int timer) {
++  return 0x40000000; // Some large number
++}
++
++unsigned int HAL_TimerPeriod(int timer) {
++  if (!timers[timer].created) return 0;
++  struct itimerspec it;
++  sys_timer_gettime(timers[timer].id, &it);
++  return it.it_interval.tv_sec * TIMER_GRANULARITY + it.it_interval.tv_nsec / (1000000000U / TIMER_GRANULARITY);
++}
++
++unsigned int HAL_TimerReadCountdown(int timer) {
++  if (!timers[timer].created) return 0;
++  struct itimerspec it;
++  sys_timer_gettime(timers[timer].id, &it);
++  return it.it_value.tv_sec * TIMER_GRANULARITY + it.it_value.tv_nsec / (1000000000U / TIMER_GRANULARITY);
++}
++
++
++
++// HAL Video API
++
++int HAL_VideoFeatures(void) {
++  return (1 << 1);
++}
++
++int HAL_VideoFlybackDevice(void) {
++  return -1;
++}
++
++int HAL_VideoPixelFormats(void) {
++  return (1 << 5) | (1 << 3);
++}
++
++unsigned HAL_VideoBufferAlignment(void) {
++  return 4;
++}
++
++
++
++// Interrupt handling
++
++void irq_signal_handler(int signal, siginfo_t *info, void *ucontext) {
++
++  struct ucontext * restrict r = (struct ucontext *)ucontext;
++  int irq;
++
++  if (signal == SIGALRM) {
++    // Timer, so count the overruns, so the RISC OS gets the right number of interrupts.
++    irq = info->si_int;
++    irqs[irq].pending += 1 + info->si_overrun;
++  } else if (signal == SIGIO) {
++    irq = info->si_fd;
++    irqs[irq].pending = 1;
++  } else {
++    irq = SIGNAL_IRQ_BASE + signal;
++    irqs[irq].pending = 1;
++  }
++
++  if (!irqs[irq].enabled) return; // IRQ line diabled, so just return.
++
++  struct vcpu* vcpu = __kuser_get_tls();
++  add_irq(vcpu, irq);
++
++  if (vcpu->cpsr & PSR_I_BIT) return;
++
++  if (r->uc_mcontext.arm_pc >= (uint32_t)&SetCPSR_Start && r->uc_mcontext.arm_pc < (uint32_t)&SetCPSR_End) {
++
++    // In SetCPSR_c, so don't call vector, instead back up to check if required.
++    if (r->uc_mcontext.arm_pc > (uint32_t)&SetCPSR_Restart) r->uc_mcontext.arm_pc = (uint32_t)&SetCPSR_Restart;
++
++  } else {
++
++    if (r->uc_mcontext.arm_pc == (uint32_t)&SetCPSR_End) {
++      // At the end of SetCPSR_c
++      // LDM isn't atomic, so can't back up simply, instead complete it.
++      uint32_t *t = (uint32_t *)r->uc_mcontext.arm_r2;
++      r->uc_mcontext.arm_r0 = t[-6];
++      r->uc_mcontext.arm_r1 = t[-5];
++      r->uc_mcontext.arm_r2 = t[-4];
++      r->uc_mcontext.arm_r3 = t[-3];
++      r->uc_mcontext.arm_ip = t[-2];
++      r->uc_mcontext.arm_pc = t[-1];
++    }
++
++    // Switch to IRQ mode
++    uint32_t mode = vcpu->cpsr & 0x1F;
++    struct vmode* vmode = (struct vmode *)((char *)vcpu + vmode_offsets[mode]);
++    vmode->r13 = r->uc_mcontext.arm_sp;
++    vmode->r14 = r->uc_mcontext.arm_lr;
++    r->uc_mcontext.arm_sp = vcpu->irq.r13;
++    r->uc_mcontext.arm_lr = vcpu->irq.r14;
++
++    vcpu->irq.spsr = (r->uc_mcontext.arm_cpsr & ~VBITS) | vcpu->cpsr;
++    vcpu->cpsr = IRQ_MODE | PSR_I_BIT; // IRQ32 mode with IRQ disabled.
++
++    // Call IRQ vector upon return
++    r->uc_mcontext.arm_lr = r->uc_mcontext.arm_pc + 4;
++    r->uc_mcontext.arm_pc = vcpu->vectors[5];
++  }
++}
++
++
++static inline void os_writec(char c) {
++  // For testing
++  __asm {
++        MOV     r0, c
++        MOV     r7, #__NR_exit
++        SWI     0, {r0, r7}, {r7}, {lr, psr}
++        TEQ     r7, #__NR_exit
++        STRNE   r7, [r7, -r7]
++  }
++}
++
++static const struct sigaction irq_sigact = {
++  .sa_sigaction = &irq_signal_handler,
++  .sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART,
++  .sa_mask = ~(sigset_t)0
++};
++
++static int signal_stack[MINSIGSTKSZ / sizeof(int) + 32];  // FIXME size?
++
++static const stack_t signal_stack_struct = {
++  .ss_sp = signal_stack,
++  .ss_size = sizeof(signal_stack),
++  .ss_flags = 0
++};
++
++void hal_run(void) {
++
++#if 1
++  // Some debuging code.
++  sys_MESSAGE(2, "Hello ");
++
++  // Test SWI handling.
++  const char *c = "World\n";
++  while(*c) os_writec(*c++);
++
++  init_counter();
++
++  // Set alternative stack for signal handlers,
++  // RISC OS stack may not exist or be usable.
++  sys_sigaltstack(&signal_stack_struct, 0);
++
++  sys_sigaction(SIGUSR1, &irq_sigact, 0);
++  sys_sigaction(SIGUSR2, &irq_sigact, 0);
++  sys_sigaction(SIGALRM, &irq_sigact, 0);
++  sys_sigaction(SIGIO, &irq_sigact, 0);
++
++  test_pvirt();
++
++  sys_raise(SIGUSR1);
++  HAL_IRQEnable(SIGNAL_IRQ_BASE + SIGUSR1);
++  sys_raise(SIGUSR1);
++  HAL_IRQDisable(SIGNAL_IRQ_BASE + SIGUSR1);
++  sys_raise(SIGUSR1);
++  HAL_IRQClear(SIGNAL_IRQ_BASE + SIGUSR1);
++
++  printu(interrupt_count);
++  sys_MESSAGE(2, " of 15 interrupts counted.\n");
++#endif
++
++  OSHdr *h = (void *)(ADDRESS + HALSIZE);
++  uint32_t *e = (void *)((char *)h + h->Entries);
++
++  sys_MESSAGE(2, "Starting kernel...\n");
++  ((RISCOS_Start_t)((char *)e + e[OS_Start]))(OSStartFlag_POR | OSStartFlag_NoCMOSReset | OSStartFlag_RAMCleared, h, &HAL_Header, 0);
++
++
++  sys_exit(0);
++}
+diff --git a/mixed/RiscOS/Sources/Linux/HAL/h/header b/mixed/RiscOS/Sources/Linux/HAL/h/header
+new file mode 100644
+index 0000000..7e3f138
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/HAL/h/header
+@@ -0,0 +1,101 @@
++/*
++ * Copyright (c) 2013, Timothy Baldwin
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *     * Redistributions of source code must retain the above copyright
++ *       notice, this list of conditions and the following disclaimer.
++ *     * Redistributions in binary form must reproduce the above copyright
++ *       notice, this list of conditions and the following disclaimer in the
++ *       documentation and/or other materials provided with the distribution.
++ *     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++ *       may be used to endorse or promote products derived from this software
++ *       without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++
++#include <stdint.h>
++#include <stdbool.h>
++#include <Global/OSEntries.h>
++#include <Global/HALEntries.h>
++
++#define NVRAM_FD 10
++
++#define MAX_FILES 512
++
++#define SIGNAL_IRQ_BASE MAX_FILES
++
++#define TIMERS 32
++#define TIMER_IRQ_BASE (SIGNAL_IRQ_BASE + 32)
++#define TIMER_GRANULARITY 1024U
++
++#define IRQS (TIMER_IRQ_BASE + TIMERS)
++
++
++typedef int (__kuser_cmpxchg_t)(int oldval, int newval, volatile int *ptr);
++#define __kuser_cmpxchg (*(__kuser_cmpxchg_t *)0xffff0fc0)
++
++typedef void * (__kuser_get_tls_t)(void);
++#define __kuser_get_tls (*(__kuser_get_tls_t *)0xffff0fe0)
++
++#define VBITS 0xCF
++
++struct vmode {
++  volatile unsigned r13, r14, spsr;
++};
++
++struct vcpu {
++  unsigned reserved[2];
++  unsigned Enter_SWI;
++  unsigned save[4];
++  unsigned *vectors;
++  volatile uint8_t cpsr, irq_pending, pad1, pad2;
++  struct vmode svc, usr, irq;
++};
++
++struct Irq {
++  volatile bool enabled;
++  volatile int pending;
++  volatile int next;
++};
++
++
++typedef void (*RISCOS_Start_t)(unsigned int flags, OSHdr *riscos_header, void *hal_descriptor, void *ref);
++typedef void *(*RISCOS_MapInIO_t)(unsigned int flags, void *phys, unsigned int size);
++
++typedef void (*RISCOS_AddDevice_t)(uint32_t flags, struct device *d);
++typedef uint32_t (*RISCOS_LogToPhys_t)(const void *log);
++//typedef int (*RISCOS_IICOpV_t)(iic_transfer *descs, int ndesc_and_bus);
++typedef void *(*RISCOS_AccessPhysicalAddress_t)(unsigned int flags, void *phys, void **oldp);
++typedef void (*RISCOS_ReleasePhysicalAddress_t)(void *old);
++
++extern int nvram_fd;
++extern uint8_t vmode_offsets[];
++extern struct vcpu init_vcpu;
++extern unsigned interrupt_count;
++extern uint32_t SetCPSR_Start, SetCPSR_Restart, SetCPSR_End;
++extern uint32_t HAL_Header;
++
++extern const struct sigaction default_sigact;
++extern const struct sigaction ignore_sigact;
++
++extern int strlen(const char *s);
++extern void test_pvirt(void);
++extern void signal_return(void);
++extern void call_irq(struct vcpu*);
++extern void hal_run(void);
++extern int start_ptrace(void);
++extern int HAL_IRQSource(void);
+diff --git a/mixed/RiscOS/Sources/Linux/HAL/s/CLib b/mixed/RiscOS/Sources/Linux/HAL/s/CLib
+new file mode 100644
+index 0000000..36346f5
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/HAL/s/CLib
+@@ -0,0 +1,167 @@
++; This source code in this file is licensed to You by Castle Technology
++; Limited ("Castle") and its licensors on contractual terms and conditions
++; ("Licence") which entitle you freely to modify and/or to distribute this
++; source code subject to Your compliance with the terms of the Licence.
++;
++; This source code has been made available to You without any warranties
++; whatsoever. Consequently, Your use, modification and distribution of this
++; source code is entirely at Your own risk and neither Castle, its licensors
++; nor any other person who has contributed to this source code shall be
++; liable to You for any loss or damage which You may suffer as a result of
++; Your use, modification or distribution of this source code.
++;
++; Full details of Your rights and obligations are set out in the Licence.
++; You should have received a copy of the Licence with this source code file.
++; If You have not received a copy, the text of the Licence is available
++; online at www.castle-technology.co.uk/riscosbaselicence.htm
++;
++; -*- Mode: Assembler -*-
++;* Ripped from C Library
++;
++; Copyright (C) Acorn Computers Ltd., 1988.
++
++        AREA |Asm|, CODE, READONLY
++        EXPORT  |__rt_sdiv|
++        EXPORT  |__rt_udiv|
++        EXPORT  |__rt_udiv10|
++
++|__rt_udiv|
++|_kernel_udiv|
++|x$udivide|
++; Unsigned divide of a2 by a1: returns quotient in a1, remainder in a2
++; Destroys a3 and ip
++
++        MOV     a3, #0
++        RSBS    ip, a1, a2, LSR #3
++        BCC     u_sh2
++        RSBS    ip, a1, a2, LSR #8
++        BCC     u_sh7
++        MOV     a1, a1, LSL #8
++        ORR     a3, a3, #&FF000000
++        RSBS    ip, a1, a2, LSR #4
++        BCC     u_sh3
++        RSBS    ip, a1, a2, LSR #8
++        BCC     u_sh7
++        MOV     a1, a1, LSL #8
++        ORR     a3, a3, #&00FF0000
++        RSBS    ip, a1, a2, LSR #8
++        MOVCS   a1, a1, LSL #8
++        ORRCS   a3, a3, #&0000FF00
++        RSBS    ip, a1, a2, LSR #4
++        BCC     u_sh3
++        RSBS    ip, a1, #0
++        BCS     dividebyzero
++u_loop  MOVCS   a1, a1, LSR #8
++u_sh7   RSBS    ip, a1, a2, LSR #7
++        SUBCS   a2, a2, a1, LSL #7
++        ADC     a3, a3, a3
++u_sh6   RSBS    ip, a1, a2, LSR #6
++        SUBCS   a2, a2, a1, LSL #6
++        ADC     a3, a3, a3
++u_sh5   RSBS    ip, a1, a2, LSR #5
++        SUBCS   a2, a2, a1, LSL #5
++        ADC     a3, a3, a3
++u_sh4   RSBS    ip, a1, a2, LSR #4
++        SUBCS   a2, a2, a1, LSL #4
++        ADC     a3, a3, a3
++u_sh3   RSBS    ip, a1, a2, LSR #3
++        SUBCS   a2, a2, a1, LSL #3
++        ADC     a3, a3, a3
++u_sh2   RSBS    ip, a1, a2, LSR #2
++        SUBCS   a2, a2, a1, LSL #2
++        ADC     a3, a3, a3
++u_sh1   RSBS    ip, a1, a2, LSR #1
++        SUBCS   a2, a2, a1, LSL #1
++        ADC     a3, a3, a3
++u_sh0   RSBS    ip, a1, a2
++        SUBCS   a2, a2, a1
++        ADCS    a3, a3, a3
++        BCS     u_loop
++        MOV     a1, a3
++        MOV     pc, lr
++
++
++
++|__rt_sdiv|
++|_kernel_sdiv|
++|x$divide|
++; Signed divide of a2 by a1: returns quotient in a1, remainder in a2
++; Quotient is truncated (rounded towards zero).
++; Sign of remainder = sign of dividend.
++; Destroys a3, a4 and ip
++; Negates dividend and divisor, then does an unsigned divide; signs
++; get sorted out again at the end.
++
++        ANDS    a3, a1, #&80000000
++        RSBMI   a1, a1, #0
++        EORS    a4, a3, a2, ASR #32
++        RSBCS   a2, a2, #0
++        RSBS    ip, a1, a2, LSR #3
++        BCC     s_sh2
++        RSBS    ip, a1, a2, LSR #8
++        BCC     s_sh7
++        MOV     a1, a1, LSL #8
++        ORR     a3, a3, #&FF000000
++        RSBS    ip, a1, a2, LSR #4
++        BCC     s_sh3
++        RSBS    ip, a1, a2, LSR #8
++        BCC     s_sh7
++        MOV     a1, a1, LSL #8
++        ORR     a3, a3, #&00FF0000
++        RSBS    ip, a1, a2, LSR #8
++        MOVCS   a1, a1, LSL #8
++        ORRCS   a3, a3, #&0000FF00
++        RSBS    ip, a1, a2, LSR #4
++        BCC     s_sh3
++        RSBS    ip, a1, #0
++        BCS     dividebyzero
++s_loop  MOVCS   a1, a1, LSR #8
++s_sh7   RSBS    ip, a1, a2, LSR #7
++        SUBCS   a2, a2, a1, LSL #7
++        ADC     a3, a3, a3
++s_sh6   RSBS    ip, a1, a2, LSR #6
++        SUBCS   a2, a2, a1, LSL #6
++        ADC     a3, a3, a3
++s_sh5   RSBS    ip, a1, a2, LSR #5
++        SUBCS   a2, a2, a1, LSL #5
++        ADC     a3, a3, a3
++s_sh4   RSBS    ip, a1, a2, LSR #4
++        SUBCS   a2, a2, a1, LSL #4
++        ADC     a3, a3, a3
++s_sh3   RSBS    ip, a1, a2, LSR #3
++        SUBCS   a2, a2, a1, LSL #3
++        ADC     a3, a3, a3
++s_sh2   RSBS    ip, a1, a2, LSR #2
++        SUBCS   a2, a2, a1, LSL #2
++        ADC     a3, a3, a3
++s_sh1   RSBS    ip, a1, a2, LSR #1
++        SUBCS   a2, a2, a1, LSL #1
++        ADC     a3, a3, a3
++s_sh0   RSBS    ip, a1, a2
++        SUBCS   a2, a2, a1
++        ADCS    a3, a3, a3
++        BCS     s_loop
++        EORS    a1, a3, a4, ASR #31
++        ADD     a1, a1, a4, LSR #31
++        RSBCS   a2, a2, #0
++dividebyzero
++        MOV     pc, lr
++
++; Fast unsigned divide by 10: dividend in a1
++; Returns quotient in a1, remainder in a2
++
++|__rt_udiv10|
++|_kernel_udiv10|
++        SUB     a2, a1, #10
++        SUB     a1, a1, a1, LSR #2
++        ADD     a1, a1, a1, LSR #4
++        ADD     a1, a1, a1, LSR #8
++        ADD     a1, a1, a1, LSR #16
++        MOV     a1, a1, LSR #3
++        ADD     a3, a1, a1, LSL #2
++        SUBS    a2, a2, a3, LSL #1
++        ADDPL   a1, a1, #1
++        ADDMI   a2, a2, #10
++        MOV     pc, lr
++
++        END
+diff --git a/mixed/RiscOS/Sources/Linux/HAL/s/PVOps b/mixed/RiscOS/Sources/Linux/HAL/s/PVOps
+new file mode 100644
+index 0000000..f14f85b
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/HAL/s/PVOps
+@@ -0,0 +1,240 @@
++;
++; Copyright (c) 2013, Timothy Baldwin
++; All rights reserved.
++;
++; Redistribution and use in source and binary forms, with or without
++; modification, are permitted provided that the following conditions are met:
++;     * Redistributions of source code must retain the above copyright
++;       notice, this list of conditions and the following disclaimer.
++;     * Redistributions in binary form must reproduce the above copyright
++;       notice, this list of conditions and the following disclaimer in the
++;       documentation and/or other materials provided with the distribution.
++;     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++;       may be used to endorse or promote products derived from this software
++;       without specific prior written permission.
++;
++; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++; POSSIBILITY OF SUCH DAMAGE.
++;
++
++        GET     Hdr:ListOpts
++        GET     Hdr:Macros
++        GET     Hdr:System
++        GET     Hdr:Machine.<Machine>
++
++        EXPORT  __ParaVirt_SetCPSR_c
++        EXPORT  __ParaVirt_GetCPSR
++        EXPORT  __ParaVirt_FindMode
++        EXPORT  __ParaVirt_MOVS_PC_LR
++
++        EXPORT  SetCPSR_Start
++        EXPORT  SetCPSR_Restart
++        EXPORT  SetCPSR_End
++
++        IMPORT  test_vectors
++        EXPORT  init_vcpu
++        EXPORT  test_stack
++        EXPORT  vmode_offsets
++        EXPORT  call_irq
++
++        AREA    ASM, CODE, READONLY
++
++__ParaVirt_GetCPSR
++        STR     lr, [sp, #-4]!
++        GetVCpu
++        LDRB    lr, [r0, #vcpu_cpsr]
++        MRS     r0, CPSR
++        BIC     r0, r0, #0xFF ; ARMv7 says the priliedged bits are UNKNOWN.
++        ORR     r0, r0, lr
++        LDR     pc, [sp], #4
++
++__ParaVirt_FindMode
++        STR     lr, [sp, #-4]!
++        GetVCpu
++        LDRB    lr, [r0, #vcpu_cpsr]
++        AND     lr, lr, #M32_bits
++        ADD     lr, lr, #vmode_offsets - . - 12
++        LDRB    lr, [pc, lr]
++        ADD     r0, r0, lr
++        LDR     pc, [sp], #4
++
++
++
++SetCPSR_Start
++
++Enter_SWI
++        STR     r3, [r0, #vcpu_save_r3]
++        LDRB    r3, [r0, #vcpu_cpsr]
++        BIC     r2, r2, #0xFF
++        ORR     r2, r2, r3
++        STR     r2, [r0, #vcpu_spsr_svc]
++
++        AND     r3, r3, #M32_bits
++        ADD     r3, r3, #vmode_offsets - . - 12
++        LDRB    r3, [pc, r3]
++        STR     sp, [r3, r0]!
++        STR     lr, [r3, #4]
++        LDR     sp, [r0, #vcpu_r13_svc]
++        MOV     lr, r1
++
++        MOV     r1, #SVC32_mode + I32_bit
++        STRB    r1, [r0, #vcpu_cpsr]
++
++        LDR     r3, [r0, #vcpu_save_r3]
++        LDR     r1, [r0, #vcpu_vectors]
++        LDR     r1, [r1, #4]
++        STR     r1, [r0, #vcpu_save_r3]
++        ADD     r0, r0, #vcpu_save_r0
++        LDMIA   r0, {r0-r2, pc}
++
++enter_irq
++        BIC     ip, r1, #M32_bits
++        ORR     ip, ip, #IRQ32_mode + I32_bit
++        STRB    ip, [r0, #vcpu_cpsr]
++
++        AND     r1, r1, #0xFF
++        BIC     lr, r3, #0xFF
++        ORR     lr, r1, lr ; r3 = Return CPSR
++        STR     lr, [r0, #vcpu_spsr_irq]
++
++        LDR     lr, [r2, #-4] ; lr = Return PC
++        ADD     lr, lr, #4
++        LDR     sp, [r0, #vcpu_r13_irq]
++
++        LDR     r1, [r0, #vcpu_vectors]
++        LDR     r1, [r1, #5*4]
++        STR     r1, [r2, #-4] ; Return PC = IRQ vector
++
++        MSR     CPSR_sf, r3
++        LDMDB   r2, {r0-r3, ip, pc}
++
++
++__ParaVirt_MOVS_PC_LR
++        STMFD   sp!, {r0-r3, ip, lr}
++        SUB     lr, lr, #4
++        vMRS    r1, SPSR
++        MSR     CPSR_sf, r1
++__ParaVirt_SetCPSR_c
++        ;   In: r1 = new CPSR_c value
++        ;       lr = return address
++        ;       sp = stack from STMFD sp!, {r0-r3, ip, lr}
++        ;
++        ; Temp: r0 = Pointer to vcpu struct
++        ;       r2 = SP on entry
++        ;       r3 = saved CPSR_sf value
++        ;       ip = temp register
++
++        MRS     r3, CPSR
++        ADD     ip, lr, #4      ; Adjust return address to avoid MSR CPSR_c
++        GetVCpu
++        LDR     lr, [sp, #5*4]  ; Read callers LR
++        STR     ip, [sp, #5*4]  ; Put old PC in it's place
++
++
++        LDRB    r2, [r0, #vcpu_cpsr]
++        AND     ip, r2, #M32_bits
++        TEQ     ip, #USR32_mode
++        MOVEQ   r1, r2 ; In USR mode, so do nothing
++
++        ADR     r2, vmode_offsets
++
++        LDRB    ip, [r2, ip]
++        ADD     sp, sp, #6*4
++        STR     sp, [ip, r0]!
++        STR     lr, [ip, #4]
++
++        AND     ip, r1, #M32_bits
++        LDRB    ip, [r2, ip]
++        MOV     r2, sp
++        LDR     sp, [ip, r0]!
++        LDR     lr, [ip, #4]
++        STRB    r1, [r0, #vcpu_cpsr]
++
++SetCPSR_Restart
++        LDRB    ip, [r0, #vcpu_irq_pending]
++        BICS    ip, ip, r1
++        BNE     enter_irq
++        MSR     CPSR_sf, r3
++SetCPSR_End
++        LDMDB   r2, {r0-r3, ip, pc}
++
++
++call_irq
++        STMFD   sp!, {r0-r3, ip, lr}
++        SUB     lr, lr, #4
++        LDR     r1, [r0, #vcpu_cpsr]
++        B       __ParaVirt_SetCPSR_c
++
++vmode_offsets
++        DCB     usr - init_vcpu
++        DCB     fiq - init_vcpu
++        DCB     irq - init_vcpu
++        DCB     svc - init_vcpu
++
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++
++        DCB     usr - init_vcpu
++        DCB     fiq - init_vcpu
++        DCB     irq - init_vcpu
++        DCB     svc - init_vcpu
++
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     abt - init_vcpu
++
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     und - init_vcpu
++
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     svc - init_vcpu
++        DCB     usr - init_vcpu
++
++        AREA    VCPU, DATA
++
++init_vcpu
++        %       8       ; Reserved for ELF thread local variables.
++        DCD     Enter_SWI
++        %       16
++        DCD     test_vectors
++        DCB     SVC32_mode
++        ALIGN
++svc     %       12
++usr     DCD     test_stack, USR32_mode, 0
++irq     DCD     test_stack, IRQ32_mode, 0
++fiq     DCD     test_stack, FIQ32_mode, 0
++und     DCD     test_stack, UND32_mode, 0
++abt     DCD     test_stack, ABT32_mode, 0
++
++        AREA    Init_Stack, DATA, NOINIT
++        %       64
++test_stack
++
++
++
++        END
+diff --git a/mixed/RiscOS/Sources/Linux/HAL/s/Tests b/mixed/RiscOS/Sources/Linux/HAL/s/Tests
+new file mode 100644
+index 0000000..c857e28
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/HAL/s/Tests
+@@ -0,0 +1,211 @@
++;
++; Copyright (c) 2013, Timothy Baldwin
++; All rights reserved.
++;
++; Redistribution and use in source and binary forms, with or without
++; modification, are permitted provided that the following conditions are met:
++;     * Redistributions of source code must retain the above copyright
++;       notice, this list of conditions and the following disclaimer.
++;     * Redistributions in binary form must reproduce the above copyright
++;       notice, this list of conditions and the following disclaimer in the
++;       documentation and/or other materials provided with the distribution.
++;     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++;       may be used to endorse or promote products derived from this software
++;       without specific prior written permission.
++;
++; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++; POSSIBILITY OF SUCH DAMAGE.
++;
++
++        GET     Hdr:ListOpts
++        GET     Hdr:Macros
++        GET     Hdr:System
++        GET     Hdr:Machine.<Machine>
++        GET     Hdr:LinuxSyscalls
++
++        PVOpsImports
++
++        IMPORT  init_vcpu
++
++        AREA    Tests, CODE
++crash   UND
++
++        MACRO
++        CheckRegs
++        TEQ     r0, #33
++        TEQEQ   r1, #2
++        TEQEQ   r2, #3
++        TEQEQ   r3, #4
++        TEQEQ   r4, #5
++        BNE     crash
++        MEND
++
++pdot    STMFD   sp!, {r0-r8, r9}
++        MOV     r0, #2
++        ADR     r1, dot
++        MOV     r2, #1
++        MOV     r7, #__NR_write
++        SWI     0xC0000
++        LDMFD   sp!, {r0-r8, pc}
++dot     DCB     "."
++        ALIGN
++
++        MACRO
++        CheckMode       $mode
++        CheckRegs
++        vMRS    r7, CPSR
++        CheckRegs
++        AND     r7, r7, #0xFF
++        TEQ     r7, #$mode
++        ;TEQEQ  lr, #$mode
++        BNE     crash
++        MOV     r9, pc
++        B       pdot
++        MEND
++
++
++        EXPORT  test_pvirt
++test_pvirt
++        STMFD   sp!, {r4-r12, lr}
++
++        LDR     r5, =init_vcpu + vcpu_irq_pending
++        MOV     r6, #0
++
++test_loop
++        MOV     r0, #33
++        MOV     r1, #2
++        MOV     r2, #3
++        MOV     r3, #4
++        MOV     r4, #5
++        MOV     lr, #SVC32_mode
++        CheckMode SVC32_mode
++
++        STRB    r6, [r5]
++        vMSR    CPSR_c, #FIQ32_mode
++        CheckMode FIQ32_mode
++
++        STRB    r6, [r5]
++        SWI     OS_EnterOS
++        CheckMode SVC32_mode
++
++        STRB    r6, [r5]
++        vMSR    CPSR_c, #USR32_mode
++        CheckMode USR32_mode
++
++        STRB    r6, [r5]
++        vMSR    CPSR_c, #USR32_mode
++        CheckMode USR32_mode
++
++        STRB    r6, [r5]
++        vMSR    CPSR_c, #SVC32_mode
++        CheckMode USR32_mode
++
++        STRB    r6, [r5]
++        SWI     OS_EnterOS
++        CheckMode SVC32_mode
++
++        STRB    r6, [r5]
++        vMSR    CPSR_c, #IRQ32_mode
++        CheckMode IRQ32_mode
++
++        STRB    r6, [r5]
++        SWI     OS_EnterOS
++        CheckMode SVC32_mode
++
++        STRB    r6, [r5]
++        vMSR    CPSR_c, #USR32_mode
++        CheckMode USR32_mode
++
++        STRB    r6, [r5]
++        SWI     OS_EnterOS
++        CheckMode SVC32_mode
++
++        STRB    r6, [r5]
++        vMSR    CPSR_c, #SYS32_mode
++        CheckMode SYS32_mode
++
++        STRB    r6, [r5]
++        vMSR    CPSR_c, #IRQ32_mode
++        CheckMode IRQ32_mode
++
++        STRB    r6, [r5]
++        vMSR    CPSR_c, #IRQ32_mode | I32_bit
++        MOV     lr, #IRQ32_mode
++        CheckMode IRQ32_mode | I32_bit
++
++        STRB    r6, [r5]
++        vMSR    CPSR_c, #SVC32_mode
++        CheckMode SVC32_mode
++
++        MOV     r0, #10
++        SWI     0
++
++        EORS    r6, r6, #I32_bit
++        BNE     test_loop
++
++        LDMFD   sp!, {r4-r12, pc}
++
++        LTORG
++
++swi_routine
++        STMFD   sp!, {r0-r2, r7, lr}
++        LDR     r0, [lr, #-4]
++        BICS    r0, r0, #0xFF000000
++        BEQ     os_writec
++        TEQ     r0, #OS_EnterOS
++        BEQ     os_enteros
++        UND
++
++os_writec
++        MOV     r0, #2
++        MOV     r1, sp
++        MOV     r2, #1
++        MOV     r7, #__NR_write
++        SWI     0xC0000
++swi_exit
++        LDMFD   sp!, {r0-r2, r7, lr}
++        MOVS_PC_LR
++
++os_enteros
++        vMRS    r0, SPSR
++        BIC     r0, r0, #M32_bits
++        ORR     r0, r0, #SVC32_mode
++        vMSR    SPSR_cxsf, r0
++        B       swi_exit
++
++irq_handler
++        SUB     lr, lr, #4
++        STR     r0, [sp, #-4]!
++        LDR     r0, interrupt_count
++        ADD     r0, r0, #1
++        STR     r0, interrupt_count
++        MOV     r0, #0
++        STRB    r0, init_vcpu + vcpu_irq_pending
++        LDR     r0, [sp], #4
++        MOVS_PC_LR
++
++        EXPORT  interrupt_count
++interrupt_count
++        DCD     0
++
++        EXPORT  test_vectors
++test_vectors
++        DCD     0
++        DCD     swi_routine
++        DCD     0
++        DCD     0
++        DCD     0
++        DCD     irq_handler
++
++
++
++        END
+diff --git a/mixed/RiscOS/Sources/Linux/HAL/s/Top b/mixed/RiscOS/Sources/Linux/HAL/s/Top
+new file mode 100644
+index 0000000..14add58
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/HAL/s/Top
+@@ -0,0 +1,201 @@
++;
++; Copyright (c) 2013, Timothy Baldwin
++; All rights reserved.
++;
++; Redistribution and use in source and binary forms, with or without
++; modification, are permitted provided that the following conditions are met:
++;     * Redistributions of source code must retain the above copyright
++;       notice, this list of conditions and the following disclaimer.
++;     * Redistributions in binary form must reproduce the above copyright
++;       notice, this list of conditions and the following disclaimer in the
++;       documentation and/or other materials provided with the distribution.
++;     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++;       may be used to endorse or promote products derived from this software
++;       without specific prior written permission.
++;
++; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++; POSSIBILITY OF SUCH DAMAGE.
++;
++
++        GET     Hdr:ListOpts
++        GET     Hdr:Macros
++        GET     Hdr:System
++        GET     Hdr:Machine.<Machine>
++        GET     Hdr:ImageSize.<ImageSize>
++        GET     Hdr:HALSize.<HALSize>
++        GET     Hdr:HALEntries
++        GET     Hdr:LinuxSyscalls
++
++        AREA |HEAD|, CODE, READONLY
++
++        IMPORT  main
++        IMPORT  init_vcpu
++        PVOpsImports
++
++image_start
++        DCB     &7F, "ELF"
++        DCB     1       ; 32 bits
++        DCB     1       ; Two's complement, little-endian
++        DCB     1       ; ELF Version
++        DCB     3       ; Linux ABI
++        DCB     0       ; ABI Version
++        %       7       ; Unused padding
++        DCW     2       ; This is an executable
++        DCW     40      ; ARM
++        DCD     1       ; EV_CURRENT - Current file version, not invalid.
++
++        DCD     entry                           ; Start address
++        DCD     program_headers - image_start   ; Offset to program headers
++        DCD     0                               ; Offset to section headers (none)
++        DCD     0x80                            ; Flags - uses EABI
++        DCW     header_end - image_start        ; Size of ELF header
++        DCW     32                              ; Size of program headers
++        DCW     2                               ; Number of program headers
++        DCW     40                              ; Size of section headers
++        DCW     0                               ; Number of section headers
++        DCW     0                               ; Section header string table index
++header_end
++
++        B       __ParaVirt_SetCPSR_c
++        B       __ParaVirt_GetCPSR
++        B       __ParaVirt_FindMode
++        B       __ParaVirt_MOVS_PC_LR
++
++        ENTRY
++entry   LDR     r0, [sp]        ; Read argc
++        ADD     r1, sp, #4      ; Read argv
++        BL      main
++        MOV     r7, #__NR_exit
++        SWI     0
++
++__main  *       0
++        EXPORT  __main
++
++        EXPORT  start_ptrace
++        IMPORT  do_ptrace
++start_ptrace
++        STMFD   sp!, {r4, r7, lr}
++        MOV     r0, #CLONE_VM
++        MOV     r1, #0
++        MOV     r2, #0
++        MOV     r3, #0
++        MOV     r4, #0
++        LDR     r7, =__NR_clone
++        SWI     0
++        TEQ     r0, #0
++        LDMEQFD sp!, {r4, r7, pc} ; Return if child.
++        LDMMIFD sp!, {r4, r7, pc} ; Return on failure.
++        LDR     sp, =ptrace_stack
++        B       do_ptrace         ; Parent runs ptrace loop
++
++
++null_entry
++        MOV     pc, lr
++
++program_headers
++        DCD     1 ; PT_LOAD
++        DCD     0 ; Offset
++        DCD     image_start
++        DCD     0 ; Physical address unused
++        DCD     OSROM_HALSize ; File size
++        DCD     OSROM_HALSize ; Memory size
++        DCD     7 ; Readable, writable and executable
++        DCD     16 ; Alignment
++
++        DCD     1 ; PT_LOAD
++        DCD     OSROM_HALSize ; Offset
++        DCD     image_start + OSROM_HALSize
++        DCD     0 ; Physical address unused
++        DCD     OSROM_ImageSize * 1024 - OSROM_HALSize ; File size
++        DCD     OSROM_ImageSize * 1024 - OSROM_HALSize ; Memory size
++        DCD     5 ; Readable, writable and executable
++        DCD     16 ; Alignment
++
++        GBLA    max
++max     SETA    0
++
++        MACRO
++        H       $name
++        LCLA    t
++t       SETA    EntryNo_$name
++        GBLS    ent_$t
++ent_$t  SETS    "$name"
++        IF t > max
++max       SETA t
++        ENDIF
++        MEND
++
++
++        H       HAL_ControllerAddress
++        H       HAL_CounterDelay
++        H       HAL_CounterPeriod
++        H       HAL_CounterRate
++        H       HAL_CounterRead
++        H       HAL_DebugRX
++        H       HAL_DebugTX
++        H       HAL_IRQClear
++        H       HAL_IRQDisable
++        H       HAL_IRQEnable
++        H       HAL_IRQMax
++        H       HAL_IRQSource
++        H       HAL_IRQStatus
++        H       HAL_Init
++        H       HAL_InitDevices
++        H       HAL_KbdScan
++        H       HAL_NVMemoryPageSize
++        H       HAL_NVMemoryProtectedSize
++        H       HAL_NVMemoryRead
++        H       HAL_NVMemorySize
++        H       HAL_NVMemoryType
++        H       HAL_NVMemoryWrite
++        H       HAL_PlatformInfo
++        H       HAL_Reset
++        H       HAL_TimerDevice
++        H       HAL_TimerGranularity
++        H       HAL_TimerMaxPeriod
++        H       HAL_TimerPeriod
++        H       HAL_TimerReadCountdown
++        H       HAL_TimerSetPeriod
++        H       HAL_VideoFeatures
++        H       HAL_VideoFlybackDevice
++        H       HAL_VideoPixelFormats
++        H       HAL_VideoBufferAlignment
++
++HAL_EntryTable
++        GBLA    i
++        GBLS    name
++i       SETA    0
++        WHILE i <= max
++          IF :DEF:ent_$i
++name        SETS ent_$i
++            IMPORT $name
++            DCD $name - HAL_EntryTable
++          ELSE
++            DCD null_entry - HAL_EntryTable
++          ENDIF
++i         SETA i + 1
++        WEND
++
++        EXPORT  HAL_Header
++HAL_Header
++        DCD     0
++        DCD     image_start - HAL_Header
++        DCD     OSROM_HALSize
++        DCD     HAL_EntryTable - HAL_Header
++        DCD     max
++        DCD     0 ; No workspace
++
++        AREA    Init_Stack, DATA, NOINIT
++        %       64 * 4
++ptrace_stack
++
++        END
+diff --git a/mixed/RiscOS/Sources/Linux/Headers/CopyHeaders b/mixed/RiscOS/Sources/Linux/Headers/CopyHeaders
+new file mode 100644
+index 0000000..f3f92e9
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/Headers/CopyHeaders
+@@ -0,0 +1,58 @@
++
++REM Copyright (c) 2013, Timothy Baldwin
++REM All rights reserved.
++
++REM Redistribution and use in source and binary forms, with or without
++REM modification, are permitted provided that the following conditions are met:
++REM     * Redistributions of source code must retain the above copyright
++REM       notice, this list of conditions and the following disclaimer.
++REM     * Redistributions in binary form must reproduce the above copyright
++REM       notice, this list of conditions and the following disclaimer in the
++REM       documentation and/or other materials provided with the distribution.
++REM     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++REM       may be used to endorse or promote products derived from this software
++REM       without specific prior written permission.
++
++REM THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++REM AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++REM IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++REM ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++REM LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++REM CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++REM SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++REM INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++REM CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++REM ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++REM POSSIBILITY OF SUCH DAMAGE.
++
++DIM B% 10000
++PROCrecurse("linux")
++PROCrecurse("asm")
++PROCrecurse("asm-generic")
++END
++
++DEF PROCrecurse(D$)
++PRINT D$
++SYS "XOS_File",8,"<Lib$Dir>.Linux."+D$
++B%=B%+100
++LOCAL F$, P%
++P%=0
++REPEAT
++  SYS "OS_GBPB",10,D$,B%,1,P%,100 TO ,,,N%,P%
++  IF N% THEN
++    SYS "XOS_GenerateError",B%+20 TO F$
++    IF B%!16=1 THEN
++      PROCfile(D$,F$)
++    ELSE
++      PROCrecurse(D$+"."+F$)
++    ENDIF
++  ENDIF
++  UNTIL P%=-1
++B%=B%-100
++ENDPROC
++
++DEF PROCfile(D$, F$)
++IF RIGHT$(F$,2)<>"/h" THEN ENDPROC
++SYS "XOS_File",8,"<Lib$Dir>.Linux."+D$+".h"
++SYS "OS_FSControl",26,D$+"."+F$,"<Lib$Dir>.Linux."+D$+".h."+LEFT$(F$, LEN(F$)-2)
++ENDPROC
+diff --git a/mixed/RiscOS/Sources/Linux/Headers/Makefile b/mixed/RiscOS/Sources/Linux/Headers/Makefile
+new file mode 100644
+index 0000000..40e9a79
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/Headers/Makefile
+@@ -0,0 +1,40 @@
++#
++# Copyright (c) 2013, Timothy Baldwin
++# All rights reserved.
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions are met:
++#     * Redistributions of source code must retain the above copyright
++#       notice, this list of conditions and the following disclaimer.
++#     * Redistributions in binary form must reproduce the above copyright
++#       notice, this list of conditions and the following disclaimer in the
++#       documentation and/or other materials provided with the distribution.
++#     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++#       may be used to endorse or promote products derived from this software
++#       without specific prior written permission.
++#
++# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGE.
++#
++
++include Makefiles:StdTools
++
++COMPONENT = LinuxHeaders
++
++export: export_${PHASE}
++
++export_hdrs:
++	${MKDIR} <Lib$Dir>.Linux
++	Dir include
++	BASIC -quit ^.CopyHeaders
++	do sed -e "s/char _pad.sizeof( __ARCH_SI_UID_T) - sizeof(int).;//;" < asm-generic.siginfo/h > <Lib$Dir>.Linux.asm-generic.h.siginfo
++	Dir ^
+diff --git a/mixed/RiscOS/Sources/Linux/Headers/Update.sh b/mixed/RiscOS/Sources/Linux/Headers/Update.sh
+new file mode 100755
+index 0000000..4de467f
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/Headers/Update.sh
+@@ -0,0 +1,63 @@
++#!/bin/bash
++#
++# Copyright (c) 2013, Timothy Baldwin
++# All rights reserved.
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions are met:
++#     * Redistributions of source code must retain the above copyright
++#       notice, this list of conditions and the following disclaimer.
++#     * Redistributions in binary form must reproduce the above copyright
++#       notice, this list of conditions and the following disclaimer in the
++#       documentation and/or other materials provided with the distribution.
++#     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++#       may be used to endorse or promote products derived from this software
++#       without specific prior written permission.
++#
++# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGE.
++#
++
++# Exit on error
++set -e
++
++work="$(dirname $0)/work"
++
++rm -rf "$work"
++mkdir "$work"
++
++cp -al "$1" "$(dirname $0)/work/linux"
++
++# Set current directory to one containing this script
++cd "$work"
++
++touch stamp
++sleep 2
++
++cat linux/COPYING > /dev/null
++
++mkdir build
++make -C linux O=../build ARCH=arm headers_install INSTALL_HDR_PATH=..
++rm -rf headers build
++find linux \! \( -anewer stamp -o -newer stamp -o -cnewer stamp \) -delete || true
++find  linux -type d -delete || true 2> /dev/null
++
++mkdir build
++make -C linux O=../build ARCH=arm headers_install INSTALL_HDR_PATH=..
++
++find include -type d -delete || true 2> /dev/null
++find include \( -name '.install' -or -name '..install.cmd' \) -delete || true
++find include linux -type d -exec mkdir -p '../{}' \; || true
++find include linux -type f \! -exec cmp '{}' '../{}' \; -exec cp '{}' '../{}' \; || true
++
++cd ..
++rm -rf work
+diff --git a/mixed/RiscOS/Sources/Linux/Syscalls/GenSyscall,102 b/mixed/RiscOS/Sources/Linux/Syscalls/GenSyscall,102
+new file mode 100644
+index 0000000..1a339e1
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/Syscalls/GenSyscall,102
+@@ -0,0 +1,191 @@
++#!/usr/bin/perl
++print <<END;
++/*
++ * Copyright (c) 2013, Timothy Baldwin
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *     * Redistributions of source code must retain the above copyright
++ *       notice, this list of conditions and the following disclaimer.
++ *     * Redistributions in binary form must reproduce the above copyright
++ *       notice, this list of conditions and the following disclaimer in the
++ *       documentation and/or other materials provided with the distribution.
++ *     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++ *       may be used to endorse or promote products derived from this software
++ *       without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++END
++
++sub sys {
++  my ($type, $name, $args, $scno) = @_;
++  $scno = "__NR_" . $name unless defined $scno;
++  my @argsl = split(/,/, $args);
++  $args =~ s/LARGE //;
++  $args =~ s/SMALL //;
++  print "static inline ${type} sys_${name}(${args}) {\n";
++
++  if ($type ne "void") {
++    print "  ${type} result;\n";
++  }
++
++  if ($args ne "void") {
++    foreach (@argsl) {
++      if (/LARGE/) {
++        my ($var) = /.*\s[^\s\w]*(\w*)\s*/;
++        print "  unsigned ${var}_lo = (unsigned)(${var});\n";
++        print "  unsigned ${var}_hi = (unsigned)(((unsigned long long)${var}) >> 32);\n";
++      }
++    }
++  }
++
++  print "  __asm {\n";
++
++  my $i = 0, $input = "R7";
++  if ($args ne "void") {
++    foreach (@argsl) {
++      my ($var) = /.*\s[^\s\w]*(\w*)\s*/;
++      if (/LARGE/) {
++        $i = ($i + 1) & 14;
++        print "        MOV     R${i}, ${var}_lo\n";
++        $input = "${input}, R${i}";
++        ++$i;
++        print "        MOV     R${i}, ${var}_hi\n";
++      } elsif (/SMALL/) {
++        $i = ($i + 1) & 14;
++        print "        MOV     R${i}, ${var}\n";
++        $input = "${input}, R${i}";
++        ++$i;
++        print "        MOV     R${i}, #0\n";
++      } else {
++        print "        MOV     R${i}, ${var}\n";
++      }
++      $input = "${input}, R${i}";
++      ++$i;
++    }
++  }
++  print "        MOV     R7, #${scno}\n";
++  print "        SWI     LinuxSupport_Syscall, {${input}}, {R0}, {}\n";
++  if ($type eq "void") {
++    print "  }\n";
++  } else {
++    print "        MOV     result, R0\n";
++    print "  }\n";
++    print "  return result;\n";
++  }
++  print "}\n\n";
++}
++
++print <<END;
++
++// This macro is required by Linux header files.
++#define __signed__ signed
++
++#ifndef LinuxSupport_Syscall
++#define LinuxSupport_Syscall 0xC0000
++#endif
++
++#include <stddef.h>
++#include <stdint.h>
++
++// For system call numbers.
++#define __ARM_EABI__
++#include <asm/unistd.h>
++#undef __ARM_EABI__
++
++// For various types.
++#include <linux/posix_types.h>
++#include <linux/types.h>
++#include <linux/signal.h>
++#include <asm/stat.h>
++
++typedef int pid_t;
++typedef int timer_t;
++typedef int clockid_t;
++typedef int mode_t;
++typedef long long off64_t;
++typedef long off_t;
++
++struct timespec;
++struct itimerspec;
++struct rlimit;
++
++END
++
++sys "int", "getrlimit", "int resource, struct rlimit *rlim", "__NR_ugetrlimit";
++sys "int", "setrlimit", "int resource, const struct rlimit *rlim";
++
++sys "int", "nanosleep", "const struct timespec *req, struct timespec *rem";
++sys "void *", "mmap", "void *addr, size_t length, int prot, int flags, int fd, off_t offset", "__NR_mmap2";
++
++sys "int", "read", "int fd, void *buf, size_t count";
++sys "int", "pread", "int fd, void *buf, size_t count, SMALL off_t offset", "__NR_pread64";
++sys "int", "pread64", "int fd, void *buf, size_t count, LARGE off64_t offset";
++sys "int", "write", "int fd, const void *buf, size_t count";
++sys "int", "pwrite", "int fd, const void *buf, size_t count, SMALL off_t offset", "__NR_pwrite64";
++sys "int", "pwrite64", "int fd, const void *buf, size_t count, LARGE off64_t offset";
++
++sys "int", "open", "const char *pathname, int flags, mode_t mode";
++sys "int", "lseek", "int fd, off_t offset, unsigned int whence";
++sys "int", "ftruncate", "int fd, off_t length";
++sys "int", "unlink", "const char *pathname";
++
++sys "int", "fstat", "int fd, struct stat *buf";
++sys "int", "ioctl", "int fd, int request, void *v";
++sys "int", "dup2", "int oldfd, int newfd";
++sys "int", "dup3", "int oldfd, int newfd, int flags";
++sys "int", "close", "int fd";
++
++sys "int", "personality", "unsigned long persona";
++sys "void", "exit", "int status";
++sys "int", "kill", "int pid, int signal";
++sys "int", "tgkill", "int tgid, int tid, int signal";
++sys "int", "fork", "void";
++sys "int", "wait4", "int pid, int *status, int options, struct rusage *rusage";
++sys "int", "gettid", "void";
++sys "int", "getpid", "void";
++sys "long", "ptrace", "int request, pid_t pid, void *addr, int data";
++sys "void", "set_tls", "void *tls", "__ARM_NR_set_tls";
++sys "int", "cacheflush", "void *start, void *end, int flags", "__ARM_NR_cacheflush";
++
++sys "int", "sigaction", "int signum, const struct sigaction *act, struct sigaction *oldact";
++sys "int", "sigaltstack", "const stack_t *ss, stack_t *oss";
++
++sys "int", "timer_create", "clockid_t clockid, struct sigevent *evp, timer_t *timerid";
++sys "int", "timer_settime", "timer_t timerid, int flags, const struct itimerspec *new_value, struct itimerspec * old_value";
++sys "int", "timer_gettime", "timer_t timerid, struct itimerspec *curr_value";
++sys "int", "timer_getoverrun", "timer_t timerid";
++sys "int", "clock_gettime", "clockid_t clk_id, struct timespec *res";
++sys "int", "clock_getres", "clockid_t clk_id, struct timespec *res";
++
++
++print <<END;
++
++static inline int sys_waitpid(int pid, int *status, int options) {
++  return sys_wait4(pid, status, options, 0);
++}
++
++static inline int sys_wait(int *status) {
++  return sys_wait4(-1, status, 0, 0);
++}
++
++static inline int sys_raise(int signal) {
++  return sys_tgkill(sys_getpid(), sys_gettid(), signal);
++}
++
++// Print an immediate message, like "Hello World"
++#define sys_MESSAGE(FD, S) sys_write((FD), (S), sizeof(S) - 1)
++END
+diff --git a/mixed/RiscOS/Sources/Linux/Syscalls/Makefile b/mixed/RiscOS/Sources/Linux/Syscalls/Makefile
+new file mode 100644
+index 0000000..fe93fd4
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/Syscalls/Makefile
+@@ -0,0 +1,44 @@
++#
++# Copyright (c) 2013, Timothy Baldwin
++# All rights reserved.
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions are met:
++#     * Redistributions of source code must retain the above copyright
++#       notice, this list of conditions and the following disclaimer.
++#     * Redistributions in binary form must reproduce the above copyright
++#       notice, this list of conditions and the following disclaimer in the
++#       documentation and/or other materials provided with the distribution.
++#     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++#       may be used to endorse or promote products derived from this software
++#       without specific prior written permission.
++#
++# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGE.
++#
++
++include Makefiles:StdTools
++
++COMPONENT = LinuxSyscalls
++
++export: export_${PHASE}
++
++<Lib$Dir>.Linux.h.syscalls: GenSyscall
++        ${MKDIR} <Lib$Dir>.Linux.h
++        ${PERL} GenSyscall > <Lib$Dir>.Linux.h.syscalls
++
++<Export$Dir>.LinuxSyscalls: SysCallAsm <Lib$Dir>.Linux.asm.h.unistd
++        ${PERL} SysCallAsm < <Lib$Dir>.Linux.asm.h.unistd > <Export$Dir>.LinuxSyscalls
++
++export_hdrs: <Lib$Dir>.Linux.h.syscalls <Export$Dir>.LinuxSyscalls
++
++export_libs:
+diff --git a/mixed/RiscOS/Sources/Linux/Syscalls/SysCallAsm,102 b/mixed/RiscOS/Sources/Linux/Syscalls/SysCallAsm,102
+new file mode 100644
+index 0000000..13afaa7
+--- /dev/null
++++ b/mixed/RiscOS/Sources/Linux/Syscalls/SysCallAsm,102
+@@ -0,0 +1,56 @@
++#!/usr/bin/perl
++#
++# Copyright (c) 2013, Timothy Baldwin
++# All rights reserved.
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions are met:
++#     * Redistributions of source code must retain the above copyright
++#       notice, this list of conditions and the following disclaimer.
++#     * Redistributions in binary form must reproduce the above copyright
++#       notice, this list of conditions and the following disclaimer in the
++#       documentation and/or other materials provided with the distribution.
++#     * Neither the name of RISC OS Open Ltd nor the names of its contributors
++#       may be used to endorse or promote products derived from this software
++#       without specific prior written permission.
++#
++# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++# POSSIBILITY OF SUCH DAMAGE.
++#
++
++# Some useful constants:
++print <<END;
++PROT_NONE       *       0x00
++PROT_READ       *       0x01
++PROT_WRITE      *       0x02
++PROT_EXEC       *       0x04
++
++MAP_SHARED      *       0x01
++MAP_PRIVATE     *       0x02
++MAP_FIXED       *       0x10
++MAP_ANONYMOUS   *       0x20
++MAP_NORESERVE   *       0x4000
++
++CLONE_VM        *       0x100
++
++END
++
++while (<>) {
++  s:/\*: ;:;
++  s:\*/:; :;
++  s:\*:;:;
++  s:#:;:;
++  s:;define\s+(__NR_\w+\s+)\(__NR_SYSCALL_BASE\+(\s*[0-9]+)\):$1 * $2:;
++  print;
++}
++
++print "\tEND\n";
+-- 
+1.8.4.rc3
+

@@ -1,0 +1,108 @@
+From 888bf697ebc2ee7f9b4f5511321d58b913e5b830 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Mon, 7 Oct 2013 17:00:05 +0100
+Subject: [PATCH 2/4] Move dependencies to separate files.
+
+---
+ castle/RiscOS/Sources/Toolbox/Libs/Makefile | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/castle/RiscOS/Sources/Toolbox/Libs/Makefile b/castle/RiscOS/Sources/Toolbox/Libs/Makefile
+index 4de16fc..89c18fe 100644
+--- a/castle/RiscOS/Sources/Toolbox/Libs/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Libs/Makefile
+@@ -40,6 +40,7 @@ CP		= copy
+ RM		= remove
+ WIPE		= x wipe
+ MAKE		= amu_machine
++ENSURE_DEPENDS	= EnsureDepends Depends
+ 
+ CPFLAGS		= ~CLFNR~V
+ WFLAGS		= ~CFR~V
+@@ -52,19 +53,29 @@ COMPONENT	= tboxlibs
+ 
+ clean:
+ 	${CD}   toolboxlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} clean
++	${RM}   Depends
+ 	${CD}   ^
+ 	${CD}   wimplib
++	${ENSURE_DEPENDS}
+ 	${MAKE} clean
++	${RM}   Depends
+ 	${CD}   ^
+ 	${CD}   flexlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} clean
++	${RM}   Depends
+ 	${CD}   ^
+ 	${CD}   eventlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} clean
++	${RM}   Depends
+ 	${CD}   ^
+ 	${CD}   renderlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} clean
++	${RM}   Depends
+ 	${CD}   ^
+ 	@echo	Library $(COMPONENT): clean complete.
+ 
+@@ -73,18 +84,23 @@ export:	export_$(PHASE)
+ 
+ export_hdrs:
+ 	${CD}   toolboxlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} export PHASE=hdrs
+ 	${CD}   ^
+ 	${CD}   wimplib
++	${ENSURE_DEPENDS}
+ 	${MAKE} export PHASE=hdrs
+ 	${CD}   ^
+ 	${CD}   flexlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} export PHASE=hdrs
+ 	${CD}   ^
+ 	${CD}   eventlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} export PHASE=hdrs
+ 	${CD}   ^
+ 	${CD}   renderlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} export PHASE=hdrs
+ 	${CD}   ^
+         ${CP}   VersionNum ${LIBDIR}.tboxlibs.LibVersion ${CPFLAGS}
+@@ -93,18 +109,23 @@ export_hdrs:
+ 
+ export_libs:
+ 	${CD}   toolboxlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} export PHASE=libs
+ 	${CD}   ^
+ 	${CD}   wimplib
++	${ENSURE_DEPENDS}
+ 	${MAKE} export PHASE=libs
+ 	${CD}   ^
+ 	${CD}   flexlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} export PHASE=libs
+ 	${CD}   ^
+ 	${CD}   eventlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} export PHASE=libs
+ 	${CD}   ^
+ 	${CD}   renderlib
++	${ENSURE_DEPENDS}
+ 	${MAKE} export PHASE=libs
+ 	${CD}   ^
+ 	@echo	Library $(COMPONENT): export libraries complete.
+@@ -116,4 +137,4 @@ install:
+         @echo ${COMPONENT}: installed
+ 
+ 
+-# Dynamic dependencies:
++include Depends
+-- 
+1.8.4.rc3
+

@@ -1,0 +1,92 @@
+From 86e0e8fa6e7403a49a92ca7cb7e98fd42eaf60d5 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Tue, 15 Oct 2013 21:45:15 +0100
+Subject: [PATCH 33/35] Modules 4 - FileCore and RAMFS
+
+---
+ castle/RiscOS/BuildSys/Components/ROOL/Linux        | 5 +++--
+ castle/RiscOS/Sources/FileSys/FileCore/s/FileCore15 | 6 ++++--
+ castle/RiscOS/Sources/FileSys/FileCore/s/InitDieSvc | 4 ++++
+ castle/RiscOS/Sources/FileSys/RAMFS/RAMFS/s/RamFS50 | 1 -
+ 4 files changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/castle/RiscOS/BuildSys/Components/ROOL/Linux b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+index 01a64c2..78b13a9 100644
+--- a/castle/RiscOS/BuildSys/Components/ROOL/Linux
++++ b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+@@ -71,8 +71,9 @@ DMAManager -type EXP
+ #DragAnObj
+ #DrawMod
+ #BBCEconet
+-#FileCore
+-#RamFS
++FileCore
++ADFS -type EXP
++RamFS
+ #Filer
+ #FilerSWIs
+ #FSLock
+diff --git a/castle/RiscOS/Sources/FileSys/FileCore/s/FileCore15 b/castle/RiscOS/Sources/FileSys/FileCore/s/FileCore15
+index 425dea1..8a7f072 100644
+--- a/castle/RiscOS/Sources/FileSys/FileCore/s/FileCore15
++++ b/castle/RiscOS/Sources/FileSys/FileCore/s/FileCore15
+@@ -68,7 +68,7 @@ PHEX
+  |
+         MRS     R0, CPSR
+         ORR     R0, R0, #SVC26_mode :OR: I32_bit
+-        MSR     CPSR_c, R0
++        vMSR    CPSR_c, R0
+  ]
+         Push    "LR"
+  [ SpoolOff
+@@ -119,6 +119,8 @@ SpoolOn
+  ]
+ 
+  [ ExceptionTrap
++        ASSERT  :LNOT: ParaVirt
++
+ Exception
+         B       ThroughZero
+         B       Undefined
+@@ -291,7 +293,7 @@ Mess1                   ;R0,R1,LR stacked
+  |
+         ORR     LR, LR, #SVC26_mode :OR: I32_bit
+         ORR     LR, LR, #Z_bit
+-        MSR     CPSR_cf, LR
++        vMSR    CPSR_cf, LR
+  ]
+         Push    "LR"
+  [ SpoolOff
+diff --git a/castle/RiscOS/Sources/FileSys/FileCore/s/InitDieSvc b/castle/RiscOS/Sources/FileSys/FileCore/s/InitDieSvc
+index a6de84d..d1f0b06 100644
+--- a/castle/RiscOS/Sources/FileSys/FileCore/s/InitDieSvc
++++ b/castle/RiscOS/Sources/FileSys/FileCore/s/InitDieSvc
+@@ -30,9 +30,13 @@ DirBufferName
+ MapArea = "MapArea:%0 Map (Drive %1)",0
+         ALIGN
+ 
++        PVJumpTable
++
+ InitEntry ROUT          ; NO REENTRANCY CHECK NEEDED
+         Push    "R7-R11,LR"
+ 
++        InitPVOps
++
+         ; Macro to disallow rip-off RAM loaded version (te he ;-)
+         ChkKernelVersion
+ 
+diff --git a/castle/RiscOS/Sources/FileSys/RAMFS/RAMFS/s/RamFS50 b/castle/RiscOS/Sources/FileSys/RAMFS/RAMFS/s/RamFS50
+index 6d1db56..6dca448 100644
+--- a/castle/RiscOS/Sources/FileSys/RAMFS/RAMFS/s/RamFS50
++++ b/castle/RiscOS/Sources/FileSys/RAMFS/RAMFS/s/RamFS50
+@@ -519,7 +519,6 @@ DieEntry
+ ; Module SWI despatch
+ SwiEntry ROUT
+         Push    "SB, LR"
+-        CLRPSR  I_bit, LR                       ; re-enable interrupts
+         LDR     SB, [SB]
+         CMPS    R11, #(SwiTableEnd - SwiTableStart) / 4
+         BHS     SwiUnknown
+-- 
+1.8.4.rc3
+

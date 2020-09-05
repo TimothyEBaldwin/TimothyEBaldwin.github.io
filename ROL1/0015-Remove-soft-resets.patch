@@ -1,0 +1,427 @@
+From 14af867621ba1fa8243cc85b43b3d798eb9988e1 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Sun, 6 Oct 2013 15:57:25 +0100
+Subject: [PATCH 15/35] Remove soft resets
+
+---
+ castle/RiscOS/Sources/Kernel/hdr/Options     |  17 --
+ castle/RiscOS/Sources/Kernel/s/NewReset      | 306 +--------------------------
+ castle/RiscOS/Sources/Kernel/s/vdu/vdudriver |  13 +-
+ 3 files changed, 2 insertions(+), 334 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/hdr/Options b/castle/RiscOS/Sources/Kernel/hdr/Options
+index a69470c..9229d4a 100644
+--- a/castle/RiscOS/Sources/Kernel/hdr/Options
++++ b/castle/RiscOS/Sources/Kernel/hdr/Options
+@@ -132,9 +132,6 @@ IrqsInClaimRelease      SETL  {TRUE}
+                 GBLL    TickIrqReenter          ; Whether TickEventChain processing re-enables IRQ's
+ TickIrqReenter  SETL    {TRUE}
+ 
+-                GBLL    SoftResets              ; If false, always force a hard reset
+-SoftResets      SETL    {FALSE}
+-
+                 GBLL    AlwaysClearRAM          ; If true, clear RAM on every break/reset
+ AlwaysClearRAM  SETL    {TRUE}
+ 
+@@ -323,24 +320,10 @@ HiProcVecs      SETL    {FALSE} ; Leave off for now
+ ; In an ideal world, we'd use something like this:
+ ; HiProcVecs      SETL    "$Machine"="Tungsten" :LOR: :LNOT: NoARMv6
+ 
+-                GBLL    DebugForcedReset        ; debug forced hard resets
+-DebugForcedReset SETL   {FALSE}
+-
+                 GBLA    FirstUnpluggableModule
+ FirstUnpluggableModule  SETA 8                  ; Podule, FileSwitch, ResourceFS, Messages, MessageTrans,
+                                                 ; TerritoryManager, UK. Moot now the keyboard and mouse aren't
+                                                 ; in the kernel - unplug those and you're stuffed.
+- [ DebugForcedReset
+-Reset_CannotResetFlag           * 1
+-Reset_SysHeapCorrupt            * 2
+-Reset_WrongCamMapAddress        * 3
+-Reset_WrongNumberOfPages        * 4
+-Reset_CamMapCorrupt             * 5
+-Reset_VectorChainCorrupt        * 6
+-Reset_TickNodesCorrupt          * 7
+-Reset_DeviceVectorCorrupt       * 8
+-Reset_PoduleOrCallBackCorrupt   * 9
+- ]
+ 
+                     GBLL  AssembleKEYV
+ AssembleKEYV        SETL  {TRUE}          ; Use KEYV.
+diff --git a/castle/RiscOS/Sources/Kernel/s/NewReset b/castle/RiscOS/Sources/Kernel/s/NewReset
+index f29b03a..d340d01 100644
+--- a/castle/RiscOS/Sources/Kernel/s/NewReset
++++ b/castle/RiscOS/Sources/Kernel/s/NewReset
+@@ -820,293 +820,9 @@ no_cmos_reset                           ; R1 has por_bit set if power on
+         Pull    "r1"
+ 
+         Pull    r0                      ; always pull CannotReset flag
+- [ SoftResets
+-        TST     r1, #por_bit
+-        BNE     hard_reset              ; it was a power-on, so it's a hard reset
+-        CMP     r0, #0
+- [ DebugForcedReset
+-        MOVNE   r2, #Reset_CannotResetFlag
+- ]
+-        BNE     hard_reset_forced
+-
+-; IF control pressed OR memory implausible (Check SysHpd, CAM map sensible) THEN hard reset
+-
+-        LDR     R0, =SysHeapStart
+-        LDR     R8, [R0, #:INDEX: hpdmagic]
+-        LDR     R2, =magic_heap_descriptor
+-        CMP     R8, R2                  ; check sysheap initialised
+- [ DebugForcedReset
+-        MOVNE   r2, #Reset_SysHeapCorrupt
+- ]
+-        BNE     hard_reset_forced
+-
+-; also check CAM map sensible
+-
+-        LDR     R5, =ZeroPage
+-        LDR     R4, [R5, #Page_Size]    ; R4 = page size
+-        ADRL    R3, PageShifts-1
+-        LDRB    R4, [R3, R4, LSR #12]   ; R4 = log2(pagesize)
+-        LDR     R3, [R5, #RAMLIMIT]     ; R3 = total RAM size
+-        MOV     R2, R3, LSR R4          ; number of pages=total memory / pagesize
+-        CMP     R2, #256                ; but if fewer than 128 (eg 64 on A305) (NB if <256 then <=128)
+-        MOVCC   R2, #128                ; then use 128 (all MEMC1's pages need initialising,
+-                                        ; even if half of them are not in use)
+-        SUB     R2, R2, #1
+-        LDR     R3, =CamEntriesForVicky
+-
+-        LDR     R4, [R5, #MaxCamEntry]  ; get highest CAM entry
+-        LDR     R5, [R5, #CamEntriesPointer] ; and pointer to CAM soft copy
+-
+-        CMP     R5, R3                  ; if not the same
+- [ DebugForcedReset
+-        MOVNE   r2, #Reset_WrongCamMapAddress
+-        BNE     hard_reset_forced
+- ]
+-        CMPEQ   R4, R2                  ; or number of pages not the same
+- [ DebugForcedReset
+-        MOVNE   r2, #Reset_WrongNumberOfPages
+- ]
+-        BNE     hard_reset_forced       ; then do a hard reset
+-
+-; now check all cam contains sensible values
+-
+-        LDR     R4, =ZeroPage
+-        LDR     R4, [R4, #Page_Size]
+-        SUB     R4, R4, #1
+-        ORR     R4, R4, #&F0000000      ; can have addresses above 64M
+-CamCheck
+-        LDR     R3, [R5, R2, LSL #2]
+-        BIC     r3, r3, #&F0000000      ; remove PPL
+-        TST     R3, R4
+- [ DebugForcedReset
+-        MOVNE   r2, #Reset_CamMapCorrupt
+- ]
+-        BNE     hard_reset_forced       ; wally entry: not pagesize multiple, or >= 32M
+-        SUBS    R2, R2, #1
+-        BPL     CamCheck
+-
+-; leave CTRL test till last, so the keyboard's had as much time to
+-; wiggle the wet string as we can give it
+-        LDR     R0, =ZeroPage+InitKbdWs
+-        LDRB    R1, [R0, #CTRL_Down_Flag]
+-        CMP     R1, #0
+-        BNE     hard_reset
+-
+-soft_reset
+-; clear out 4K of scratchspace, to use as a reverse CAM soft copy;
+-; set bytes to indicate page mapped to that address. Can then recalculate
+-; end of memory.
+-
+-; This code doesn't currently work on ARM600 versions -
+-; 4K of workspace isn't enough to do this with a 4K page size
+-; We'd probably want to do it differently anyway, using the L2PT
+-; But since we're removing soft resets it's not worth the effort
+-
+-        ASSERT  MEMM_Type <> "ARM600"
+-
+-        MOV     R5, #ScratchSpace
+-        MOV     R1, #4*1024
+-        MOV     R2, #0
+-clrscratch
+-        SUBS    R1, R1, #4
+-        STRPL   R2, [R5, R1]
+-        BPL     clrscratch
+-
+-        LDR     r7, =ZeroPage
+-        LDR     R2, [R7, #Page_Size]
+-        ADRL    R8, PageShifts-1
+-        LDRB    R8, [R8, R2, LSR #12]
+-
+-        LDR     r2, [r7, #RAMLIMIT]
+-        MOV     r2, r2, LSR r8          ; last valid page
+-        SUB     r2, r2, #1
+-
+-        LDR     R7, [R7, #CamEntriesPointer]
+-        LDR     R12, =DuffEntry
+-
+-restoreCAMloop
+-        LDR    R3, [R7, R2, LSL #2]
+-        MOV    r11, r3, LSR #28
+-        BIC    r3, r3, #&F0000000
+-
+-        MOV    R0, R3, LSR R8              ; logram page number
+-        LDRB   R4, [R5, R0]
+-        CMP    r4, #0                      ; check for doubly mapped pages
+-        BEQ    rclon
+-
+-        ORR    r3, r12, #&30000000         ; force to invalid place if so.
+-        STR    r3, [R7, R2, LSL #2]
+-        MOV    r3, r12
+-        MOV    r11, #3                     ; protected
+-        MOV    R0, R3, LSR R8
+-        LDRB   R4, [R5, R0]
+-rclon
+-        CMP    r3, #16*1024*1024           ; in application space?
+-        MOVLT  r11, #0                     ; noprot if so
+-        STRLT  r3, [R7, R2, LSL #2]
+-        ADD    R4, R4, #1
+-        STRB   R4, [R5, R0]                ; sema for interesting pages
+-        BL     BangCam
+-        SUBS   R2, R2, #1
+-        BPL    restoreCAMloop
+-
+-; now do post-scan to see if we need to do more CAM bashing to get pages back.
+-; any entries that aren't validateable should be remapped.
+-
+-        LDR     R1, =ZeroPage
+-        MOV     R12, #ScratchSpace
+-        LDR     R2, [R1, #Page_Size]
+-        MOV     R7, #0
+-findapplend
+-        LDRB    R3, [R12], #1
+-        CMP     R3, #0
+-        ADDNE   R7, R7, R2
+-        BNE     findapplend
+-        STR     R7, [R1, #AplWorkSize]  ; verified value
+-        LDR     R3, [R1, #RAMLIMIT]     ; calc last valid page:
+-        MOV     R3, R3, LSR R8          ; RAMLIMIT >> R8
+-        LDR     R4, [R1, #CamEntriesPointer] ; no PPL
+-testforremap
+-        SUBS    R3, R3, #1
+-        BMI     finishedremap
+-        LDR     R0, [R4, R3, LSL #2]
+-        BIC     r0, r0, #&F0000000      ; remove PPL
+-        ADD     R1, R0, R2
+-        SWI     XOS_ValidateAddress
+-        BCC     testforremap
+-
+-        Push    "R2-R4"
+-        MOV     R0, R0, LSR R8          ; curr logram page number
+-        LDRB    R4, [R5, R0]
+-        SUB     R4, R4, #1
+-        STRB    R4, [R5, R0]            ; dec sema
+-        MOV     R2, R3                  ; entry no
+-        MOV     R3, R7                  ; addr to set to
+-        BL      BangCamUpdate
+-        Pull    "R2-R4"
+-holefilled
+-        ADD     R7, R7, R2
+-        LDRB    R0, [R12], #1           ; reinspect our reverse map
+-        CMP     R0, #0
+-        BNE     holefilled
+-      [ ZeroPage <> 0
+-        LDR     R0, =ZeroPage
+-      ]
+-        STR     R7, [R0, #AplWorkSize]
+-        B       testforremap
+-
+-finishedremap
+-        MOV     R12, #NVECTORS-1
+-        LDR     R11, =ZeroPage+VecPtrTab
+-freenextvec
+-        LDR     R2, [R11, R12, LSL #2]
+-loseveclink
+-        LDR     R3, [R2, #TailPtr]
+-        BL      FreeSysHeapNode
+-        MOVVC   R2, R3
+-        BVC     loseveclink
+-        CMP     R3, #0                  ; were we at the end of the chain?
+- [ DebugForcedReset
+-        MOVNE   r2, #Reset_VectorChainCorrupt
+- ]
+-        BNE     hard_reset_forced
+-        SUBS    R12, R12, #1
+-        BPL     freenextvec
+-; so that's the code for restore default vectors, basically
+-        BL      InitVectors
+-        LDR     R0, =ZeroPage
+-        LDR     R1, [R0, #AplWorkSize]
+-        STR     R1, [R0, #MemLimit]
+-
+-        LDR     R3, =TickNodeChain
+-        LDR     R2, [R3]
+-
+-loseticknodes
+-        CMP     R2, #0
+-        BEQ     ticknodesallgone
+-
+-        LDR     R3, [R2]
+-        BL      FreeSysHeapNode
+- [ DebugForcedReset
+-        MOVVS   r2, #Reset_TickNodesCorrupt
+- ]
+-        BVS     hard_reset_forced
+-        MOV     R2, R3
+-        B       loseticknodes
+-
+-ticknodesallgone
+-; and now it's time to free the IRQ structures
+-
+-        MOV     R12, #(NoInterrupt-1)*12+8      ; last device link offset
+-        LDR     R11, =DefaultIRQ1V-DefaultIRQ1Vcode+Devices
+-freenextdev
+-        LDR     R2, [R11, R12]
+-losedevlink
+-        CMP     R2, #0
+-        BEQ     stepdevice
+-
+-        LDR     R3, [R2, #8]
+-        BL      FreeSysHeapNode
+- [ DebugForcedReset
+-        MOVVS   r2, #Reset_DeviceVectorCorrupt
+- ]
+-        BVS     hard_reset_forced
+-        MOV     R2, R3
+-        B       losedevlink
+-stepdevice
+-        SUBS    R12, R12, #12
+-        BPL     freenextdev
+-
+-; now the PIRQ structures and CallBack_Vector
+-        LDR     R11, =ZeroPage+PIRQ_Chain
+-        MOV     r4, #PodDesp_Link
+-losepirqchain
+-        LDR     R2, [R11]
+-        CMP     r2, #0                  ; for CallBack_Vector
+-        BEQ     doobry
+-losepirqlink
+-        LDR     R3, [R2, r4]
+-        BL      FreeSysHeapNode
+-        MOVVC   R2, R3
+-        BVC     losepirqlink
+-        CMP     R3, #0                  ; were we at the end of the chain?
+- [ DebugForcedReset
+-        MOVNE   r2, #Reset_PoduleOrCallBackCorrupt
+- ]
+-        BNE     hard_reset_forced
+-        LDR     R2, =ZeroPage+PIRQ_Chain
+-        CMP     R11, R2
+-        LDR     R2, =ZeroPage+PFIQasIRQ_Chain
+-        MOVEQ   R11, R2
+-        CMPNE   r11, r2
+-        LDREQ   r11, =ZeroPage+CallBack_Vector
+-    [ PodDesp_Link <> 0
+-        MOVEQ   r4, #0
+-    ]
+-        BEQ     losepirqchain
+-
+-
+-doobry  Pull    "R1"                    ; IOCControl restoration
+-        LDR     R0, =ZeroPage
+-        STRB    R1, [R0, #IOCControlSoftCopy]
+-        ASSERT  :LNOT: HAL
+-        MOV     R0, #IOC                ; and bash the hardware
+-        STRB    R1, [R0, #IOCControl]
+-
+-        MOV     R0, #SoftReset
+-        B       ResetPart1Done
+-
+- ] ; SoftResets
+ 
+ hard_reset
+- [ DebugForcedReset
+-        MOV     r2, #0                  ; indicate normal hard reset
+- ]
+-hard_reset_forced
+         LDR     r8, =ZeroPage
+- [ DebugForcedReset
+-        STR     r2, [r8]                ; store to logical address zero
+- ]
+ 
+         Pull    "R2"                    ; discard old IOC state
+ 
+@@ -1438,13 +1154,7 @@ ResetPart1Done                          ; R0 is reset type
+         vMSR    CPSR_c, r3
+  ]
+ 
+- [ DebugForcedReset
+-        LDR     R1, [R0]
+-        TEQ     R1, #0                                  ; if normal hard reset
+-        LDREQ   R1, BranchThroughZeroInstruction2       ; then get branchthruzero code
+- |
+         LDR     R1, BranchThroughZeroInstruction2
+- ]
+         STR     R1, [R0]                                ; put branch through 0 code at 0
+ 
+         LDR     R1, RealIRQHandler
+@@ -1523,13 +1233,6 @@ ResetPart1Done                          ; R0 is reset type
+                                         ; module prints anything in initialisation
+         ]
+ 
+-        MOV     R0, #&FD                ; read last reset type
+-        MOV     R1, #0
+-        MOV     R2, #&FF
+-        SWI     XOS_Byte
+-        CMP     R1, #SoftReset          ; soft reset?
+-        BEQ     SkipHardResetPart2
+-
+ ; HardResetPart2
+  [ HAL
+         DebugTX "HAL_InitDevices"
+@@ -1714,20 +1417,13 @@ SkipHardResetPart2                      ; code executed on all types of reset
+         MOV     R1, #Service_ReleaseFIQ
+         SWI     XOS_ServiceCall
+ 
+- [ SoftResets :LAND: STB
+-        ! 0, "!!!! SoftReset is true => resets close all open files !!!!"
+-        MOV     R0, #FSControl_Shut     ; Open files get closed at reset
+-        SWI     XOS_FSControl
+- ]
+-
+         BL      PostInit
+ 
+         MOV     r0, #&FD                ; read last reset type (again!)
+         MOV     r1, #0
+         MOV     r2, #&FF
+         SWI     XOS_Byte
+-        CMP     r1, #SoftReset          ; a softie?
+-        SWINE   XOS_WriteI+7            ; go beep! Yaay!
++        SWI     XOS_WriteI+7            ; go beep! Yaay!
+ 
+         CMP     r1, #PowerOnReset
+         BNE     %FT75
+diff --git a/castle/RiscOS/Sources/Kernel/s/vdu/vdudriver b/castle/RiscOS/Sources/Kernel/s/vdu/vdudriver
+index 399abd4..375c99b 100644
+--- a/castle/RiscOS/Sources/Kernel/s/vdu/vdudriver
++++ b/castle/RiscOS/Sources/Kernel/s/vdu/vdudriver
+@@ -346,20 +346,9 @@ VduInit ROUT
+ ;
+ 
+ InitialiseMode Entry
+- [ SoftResets
+-        MOV     r0, #&FD                ; read last reset type
+-        MOV     r1, #0
+-        MOV     r2, #&FF
+-        SWI     XOS_Byte
+-        CMP     r1, #SoftReset
+-        LDREQ   r0, =ZeroPage+VduDriverWorkSpace+ModeNo
+-        LDREQ   r0, [r0]                ; use previous mode if a soft reset
+-        MOVNE   r0, #1                  ; otherwise read configured mode
+-        SWINE   XOS_ReadSysInfo
+- |
+         MOV     r0, #1                  ; no need to check for soft reset,
+         SWI     XOS_ReadSysInfo         ; always use configured value
+- ]
++
+ ; at this stage, r0 = current screen mode either mode number or mode specifier
+ ; lets give the HAL a chance to be fussy.
+         AddressHAL
+-- 
+1.8.4.rc3
+

@@ -1,0 +1,66 @@
+From 7507702393883c5974010169cd19bc7038c76762 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Mon, 4 Nov 2013 19:19:16 +0000
+Subject: [PATCH 28/36] Map ZeroPage before allocating HAL workspace.
+
+---
+ castle/RiscOS/Sources/Kernel/s/HAL | 35 +++++++++++++++++------------------
+ 1 file changed, 17 insertions(+), 18 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/s/HAL b/castle/RiscOS/Sources/Kernel/s/HAL
+index 0acb983..f1901e3 100644
+--- a/castle/RiscOS/Sources/Kernel/s/HAL
++++ b/castle/RiscOS/Sources/Kernel/s/HAL
+@@ -617,8 +617,24 @@ RISCOS_Start
+         LDR     a3, =(AP_None * L2X_APMult)
+         BL      AllocateL2PT
+ 
+-; Allocate workspace for the HAL
++; Bootstrap time. We want to get the MMU on ASAP. We also don't want to have to
++; clear up too much mess later. So what we'll do is map in the three fixed areas
++; (L1PT, scratch space and page zero), the CAM, ourselves, and the HAL,
++; then turn on the MMU. The CAM will be filled in once the MMU is on, by
++; reverse-engineering the page tables?
+ 
++        ; Map in page zero
++        ADD     a1, v3, #DRAMOffset_PageZero - DRAMOffset_L1PT
++        LDR     a2, =ZeroPage
++  [ ECC
++        LDR     a3, =(AP_Read * L2X_APMult) + L2_C + L2_B + 1:SHL:31
++  |
++        LDR     a3, =(AP_Read * L2X_APMult) + L2_C + L2_B
++  ]
++        MOV     a4, #16*1024
++        BL      Init_MapIn
++
++        ; Allocate workspace for the HAL
+         ADD     a4, v3, #DRAMOffset_PageZero - DRAMOffset_L1PT
+         LDR     a3, [sp, #8]                            ; recover pushed HAL header
+         LDR     a1, =HALWorkspace
+@@ -645,23 +661,6 @@ RISCOS_Start
+         LDRNE   a3, =32*1024
+         BLNE    Init_MapInRAM_DMA
+ 
+-; Bootstrap time. We want to get the MMU on ASAP. We also don't want to have to
+-; clear up too much mess later. So what we'll do is map in the three fixed areas
+-; (L1PT, scratch space and page zero), the CAM, ourselves, and the HAL,
+-; then turn on the MMU. The CAM will be filled in once the MMU is on, by
+-; reverse-engineering the page tables?
+-
+-        ; Map in page zero
+-        ADD     a1, v3, #DRAMOffset_PageZero - DRAMOffset_L1PT
+-        LDR     a2, =ZeroPage
+-  [ ECC
+-        LDR     a3, =(AP_Read * L2X_APMult) + L2_C + L2_B + 1:SHL:31
+-  |
+-        LDR     a3, =(AP_Read * L2X_APMult) + L2_C + L2_B
+-  ]
+-        MOV     a4, #16*1024
+-        BL      Init_MapIn
+-
+         ; Map in scratch space
+         ADD     a1, v3, #DRAMOffset_ScratchSpace - DRAMOffset_L1PT
+         MOV     a2, #ScratchSpace
+-- 
+1.8.4.rc3
+

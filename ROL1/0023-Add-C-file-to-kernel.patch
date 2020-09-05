@@ -1,0 +1,93 @@
+From 5b8fa359b3589ba47959df1a3d2c7f16350b9f28 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Fri, 4 Oct 2013 19:50:53 +0100
+Subject: [PATCH 23/35] Add C file to kernel
+
+---
+ castle/RiscOS/Sources/Kernel/Makefile | 15 ++++++++++++---
+ castle/RiscOS/Sources/Kernel/c/LinuxC | 20 ++++++++++++++++++++
+ 2 files changed, 32 insertions(+), 3 deletions(-)
+ create mode 100644 castle/RiscOS/Sources/Kernel/c/LinuxC
+
+diff --git a/castle/RiscOS/Sources/Kernel/Makefile b/castle/RiscOS/Sources/Kernel/Makefile
+index e046661..a6e472b 100644
+--- a/castle/RiscOS/Sources/Kernel/Makefile
++++ b/castle/RiscOS/Sources/Kernel/Makefile
+@@ -40,6 +40,7 @@ FREEZE_DEV_REL ?= FALSE
+ # Generic options:
+ #
+ MKDIR   = mkdir -p
++CC      = cc
+ AS      = aasm
+ ARMASM  = objasm
+ LD      = link
+@@ -47,9 +48,11 @@ CP      = copy
+ RM      = remove
+ XWIPE   = x wipe
+ PERL    = do <Perl$Dir>.perl
+-CCFLAGS = -c -depend !Depend -IC:
+ ASFLAGS = -depend !Depend ${THROWBACK} -Stamp -quit -To $@ -From
+-ARMASMFLAGS = -depend !Depend -PD "FreezeDevRel SETL {${FREEZE_DEV_REL}}" -g ${THROWBACK}
++ARMASMFLAGS = -depend !Depend -APCS 3/32bit/nofp/noswst \
++              -PD "FreezeDevRel SETL {${FREEZE_DEV_REL}}" -g ${THROWBACK}
++CFLAGS  = -depend !Depend ${THROWBACK} -c -Wpn -APCS 3/32bit/nofp/noswst \
++           -IC: -I<Lib$Dir>.Linux
+ CPFLAGS = ~cfr~v
+ WFLAGS  = ~cfr~v
+ 
+@@ -64,7 +67,6 @@ SOURCE    = s.GetAll
+ TARGET    = rm.Kernel
+ AIFDBG    = aif.Kernel
+ GPADBG    = GPA
+-OBJECTS   = o.GetAll o.End #o.ARMops
+ EXPORTS   = ${EXP_HDR}.EnvNumbers \
+             ${EXP_HDR}.ModHand \
+             ${EXP_HDR}.PublicWS \
+@@ -87,11 +89,18 @@ EXPORTS   = ${EXP_HDR}.EnvNumbers \
+             ${C_EXP_HDR}.OSRSI6 \
+             ${C_EXP_HDR}.VduExt
+ 
++OBJECTS   = o.GetAll
++ifeq (${Machine},Linux)
++OBJECTS  += o.LinuxC
++endif
++OBJECTS  += o.End #o.ARMops
++
+ #
+ # Generic rules:
+ #
+ .SUFFIXES: .o .s
+ .s.o:; ${ARMASM} ${ARMASMFLAGS} -o $@ $< #-list list.$*
++.c.o:; ${CC} ${CFLAGS} -o $@ $<
+ 
+ rom: ${TARGET}
+      @echo ${COMPONENT}: rom module built
+diff --git a/castle/RiscOS/Sources/Kernel/c/LinuxC b/castle/RiscOS/Sources/Kernel/c/LinuxC
+new file mode 100644
+index 0000000..206284e
+--- /dev/null
++++ b/castle/RiscOS/Sources/Kernel/c/LinuxC
+@@ -0,0 +1,20 @@
++/* This source code in this file is licensed to You by Castle Technology
++ * Limited ("Castle") and its licensors on contractual terms and conditions
++ * ("Licence") which entitle you freely to modify and/or to distribute this
++ * source code subject to Your compliance with the terms of the Licence.
++ *
++ * This source code has been made available to You without any warranties
++ * whatsoever. Consequently, Your use, modification and distribution of this
++ * source code is entirely at Your own risk and neither Castle, its licensors
++ * nor any other person who has contributed to this source code shall be
++ * liable to You for any loss or damage which You may suffer as a result of
++ * Your use, modification or distribution of this source code.
++ *
++ * Full details of Your rights and obligations are set out in the Licence.
++ * You should have received a copy of the Licence with this source code file.
++ * If You have not received a copy, the text of the Licence is available
++ * online at www.castle-technology.co.uk/riscosbaselicence.htm
++ */
++
++void dummy_function(void) {
++}
+-- 
+1.8.4.rc3
+

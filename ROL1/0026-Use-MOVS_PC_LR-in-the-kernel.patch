@@ -1,0 +1,75 @@
+From 9db802ae51d793bfaaf597a662e96eae49332642 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Wed, 16 Oct 2013 20:54:45 +0100
+Subject: [PATCH 26/36] Use MOVS_PC_LR in the kernel.
+
+---
+ castle/RiscOS/Sources/Kernel/s/Kernel | 10 +++++-----
+ castle/RiscOS/Sources/Kernel/s/Middle |  2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/s/Kernel b/castle/RiscOS/Sources/Kernel/s/Kernel
+index 9b0b5cb..dc8f9f4 100644
+--- a/castle/RiscOS/Sources/Kernel/s/Kernel
++++ b/castle/RiscOS/Sources/Kernel/s/Kernel
+@@ -267,7 +267,7 @@ SWIReturnWithCallBackFlag * {PC}-SWIRelocation
+         vMSREQ  SPSR_cxsf, lr
+         LDREQ   lr, [sp], #4
+         Pull    "r10-r12", EQ
+-        MOVEQS  pc, lr
++        MOVS_PC_LR EQ
+ 
+         B       callback_checking + SWIRelocation
+ 
+@@ -610,7 +610,7 @@ ErrHandler ROUT
+         vMSREQ  SPSR_cxsf, r12
+ 
+         Pull    "r10-r12", EQ
+-        MOVEQS  pc, r14                 ; USR mode, IRQs enabled
++        MOVS_PC_LR EQ                   ; USR mode, IRQs enabled
+ 
+         Push    r14                     ; Stack return address
+         MOV     r14, r12                ; Put PSR in R14
+@@ -630,7 +630,7 @@ callback_checking
+         vMSRNE  SPSR_cxsf, lr
+         LDRNE   lr, [sp], #4
+         Pull    "r10-r12", NE
+-        MOVNES  pc, lr                  ; Skip the branch for SVC code speed
++        MOVS_PC_LR NE                   ; Skip the branch for SVC code speed
+ 
+ ; Further checks: postpone callback if returning V set and R0->RAM
+ 
+@@ -663,7 +663,7 @@ back_to_user_irqs_already_off
+         vMSR    SPSR_cxsf, lr
+         LDR     lr, [sp], #4
+         Pull    "r10-r12"
+-        MOVS    pc, lr
++        MOVS_PC_LR
+ 
+ Do_CallBack                                    ; CallBack allowed:
+       [ FixCallBacks
+@@ -1231,7 +1231,7 @@ SEXIT ROUT
+         vMSR    CPSR_c, #I32_bit+SVC2632 ; IRQs off (to protect SPSR_svc)
+         BIC     r0, r0, #I32_bit+F32_bit+&0F
+         vMSR    SPSR_cxsf, r0            ; Get ready for USR26/32, IRQs on
+-        MOVS    pc, lr                  ; lr->pc, SPSR->CPSR
++        MOVS_PC_LR                       ; lr->pc, SPSR->CPSR
+  |
+         BICS    pc, lr, #ARM_CC_Mask
+  ]
+diff --git a/castle/RiscOS/Sources/Kernel/s/Middle b/castle/RiscOS/Sources/Kernel/s/Middle
+index 31a1511..e70f44c 100644
+--- a/castle/RiscOS/Sources/Kernel/s/Middle
++++ b/castle/RiscOS/Sources/Kernel/s/Middle
+@@ -474,7 +474,7 @@ NOCALL  LDR     r0, =ZeroPage               ; default callback routine
+         LDMIA   r14, {r0-r12, r13_usr, r14_usr}^ ; load user's regs
+         NOP
+         LDR     r14, [r14, #4*15]
+-        MOVS    pc, r14
++        MOVS_PC_LR
+ 
+ 
+ ERRORH ROUT
+-- 
+1.8.4.rc3
+

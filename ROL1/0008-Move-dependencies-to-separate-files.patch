@@ -1,0 +1,26 @@
+From 7278e25399af872876cecaf626eb7aa552a6184c Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Mon, 7 Oct 2013 16:59:44 +0100
+Subject: [PATCH 08/35] Move dependencies to separate files.
+
+---
+ castle/RiscOS/Env/!Common,feb | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/castle/RiscOS/Env/!Common,feb b/castle/RiscOS/Env/!Common,feb
+index f5c9a28..a8d6f3e 100644
+--- a/castle/RiscOS/Env/!Common,feb
++++ b/castle/RiscOS/Env/!Common,feb
+@@ -78,6 +78,9 @@ set CExport$Dir    <APCSExport$Dir>.C
+ set Hdr$Dir        <APCSExport$Dir>.Hdr
+ set Lib$Dir        <APCSExport$Dir>.Lib
+ 
++| Create Depends files if needed
++Set Alias$EnsureDepends "IfThere %%0 Then * Else do ""Echo #Dynamic dependencies: { > %%0 }"""
++
+ | Location for messages is now extracted from Messages entry in Components. Woo!
+ | set Messages$Dir   <Build$Dir>.Sources.OS_Core.Internat.Messages
+ | set Resource$Dir   <Build$Dir>.Sources.OS_Core.Internat.Messages.Resources.<Locale>.<System>
+-- 
+1.8.4.rc3
+

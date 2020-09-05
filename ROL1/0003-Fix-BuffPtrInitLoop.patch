@@ -1,0 +1,34 @@
+From 71600db7f7df12dbc32d27005fd0021f15674d59 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Sun, 20 Oct 2013 18:57:55 +0100
+Subject: [PATCH 03/35] Fix BuffPtrInitLoop If ZeroPage is &FFFF0000 it would
+ only do one iteration, if ZeroPage is &307F0000 it would keep going until a
+ data abort.
+
+---
+ castle/RiscOS/Sources/Kernel/s/PMF/osinit | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/s/PMF/osinit b/castle/RiscOS/Sources/Kernel/s/PMF/osinit
+index cce1ebf..3206188 100644
+--- a/castle/RiscOS/Sources/Kernel/s/PMF/osinit
++++ b/castle/RiscOS/Sources/Kernel/s/PMF/osinit
+@@ -60,11 +60,13 @@ ByteVarInitLoop
+ 
+         LDR     R0, =ZeroPage+4*(NBuffers-1) ; index to pointer
+         MOV     R1, #0                  ; value to store
++        MOV     R2, #NBuffers           ; Loop counter
+ BuffPtrInitLoop
+         STR     R1, [R0, #BuffInPtrs]
+         STR     R1, [R0, #BuffOutPtrs]
+-        SUBS    R0, R0, #4
+-        BPL     BuffPtrInitLoop
++        SUB     R0, R0, #4
++        SUBS    R2, R2, #1
++        BNE     BuffPtrInitLoop
+ 
+ ; mark printer as dormant
+ 
+-- 
+1.8.4.rc3
+

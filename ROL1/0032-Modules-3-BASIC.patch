@@ -1,0 +1,96 @@
+From 7f91a357d7f10987de3e8622a5a31d8b653ab74f Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Thu, 24 Oct 2013 00:07:09 +0100
+Subject: [PATCH 32/35] Modules 3 - BASIC
+
+---
+ castle/RiscOS/BuildSys/Components/ROOL/Linux           |  4 ++--
+ castle/RiscOS/Sources/Programmer/BASIC/s/Basic         | 11 ++++++++---
+ castle/RiscOS/Sources/Programmer/BASICTrans/s/TransSrc |  3 ---
+ 3 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/castle/RiscOS/BuildSys/Components/ROOL/Linux b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+index 5f6a4e2..01a64c2 100644
+--- a/castle/RiscOS/BuildSys/Components/ROOL/Linux
++++ b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+@@ -58,9 +58,9 @@ TaskManager -type EXP
+ #Mouse
+ #PS2Driver
+ #ADFSFiler
+-#BASIC105
++BASIC105
+ #BASIC64
+-#BASICTrans
++BASICTrans
+ BufferManager -type EXP
+ ColourTrans -type EXP
+ #Debugger
+diff --git a/castle/RiscOS/Sources/Programmer/BASIC/s/Basic b/castle/RiscOS/Sources/Programmer/BASIC/s/Basic
+index 4035168..8702658 100644
+--- a/castle/RiscOS/Sources/Programmer/BASIC/s/Basic
++++ b/castle/RiscOS/Sources/Programmer/BASIC/s/Basic
+@@ -126,8 +126,14 @@ MOVEMEMORY
+         TEQEQ   R1,R5                   ;and is HIMEM at the top of it?
+         MOVNE   R1,#0
+         LDMNEFD SP!,{R0,R2-R8,PC}       ;if not, not in a position to surrender memory.
++ [ ParaVirt
++        GetVCpu
++        LDR     R0,[R0,#vcpu_r13_svc]
++        STR     SP,[R0,#-4]!            ;get user mode stack pointer
++ |
+         SUB     SP,SP,#4
+         STMIA   SP,{SP}^                ;get user mode stack pointer
++ ]
+         LDR     R4,[ARGP,#DIMLOCAL]     ;are there any DIM LOCALs in use?
+         TEQ     R4,#0
+         MOVNE   R1,#0                   ;yes. refuse to move the stack
+@@ -154,9 +160,7 @@ MOVEMEMORYOK
+         LDMHSFD SP!,{R0,R2-R8,PC}       ;if going too small, refuse
+ 
+  [ DO32BIT = 1
+-        MRS     R3,CPSR
+-        BIC     R3,R3,#&F
+-        MSR     CPSR_c,R3               ; change down to user mode (is this safe???)
++        SWI     OS_LeaveOS              ; change down to user mode (is this safe???)
+  |
+         MOV     R3,PC
+         TEQP    R3,#3
+@@ -207,6 +211,7 @@ MOVEMEMLOCALARDONE
+         SWI     OS_EnterOS
+         MOV     R1,#Service_Memory      ;not claimed
+         LDMFD   SP!,{R0,R2-R8,PC}
++        LTORG
+ 
+ OSQUITR LDR     R1,[R12,#TRACEFILE-OLDERR] ;tracefile handle
+         TEQ     R1,#0
+diff --git a/castle/RiscOS/Sources/Programmer/BASICTrans/s/TransSrc b/castle/RiscOS/Sources/Programmer/BASICTrans/s/TransSrc
+index 0097e4b..5ead26a 100644
+--- a/castle/RiscOS/Sources/Programmer/BASICTrans/s/TransSrc
++++ b/castle/RiscOS/Sources/Programmer/BASICTrans/s/TransSrc
+@@ -335,7 +335,6 @@ UnkSWI
+         ALIGN
+ 
+ BASICTrans_HELP
+-        CLRPSR  I_bit,R11
+         Push    "lr"
+         MOV     R1,#0
+         LDRB    R10,[R0],#1
+@@ -635,7 +634,6 @@ HELPTWOFUNCTION
+         ALIGN
+ 
+ BASICTrans_Error
+-        CLRPSR  I_bit,R11
+         CMP     R0,#(ERRBASE-ERRTABLE):SHR:1
+         BHS     UnknownSWI
+         Push    "lr"
+@@ -915,7 +913,6 @@ EVFPRIA = "EVFPRIA", 0
+         ALIGN
+ 
+ BASICTrans_Message
+-        CLRPSR  I_bit,R11
+         CMP     r0, #26
+         BCS     UnknownSWI
+ 
+-- 
+1.8.4.rc3
+

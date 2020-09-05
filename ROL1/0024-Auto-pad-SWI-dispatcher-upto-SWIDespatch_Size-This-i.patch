@@ -1,0 +1,49 @@
+From 5d87be10f09722da43cf5a7b98abb99d1bf1f661 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Mon, 7 Oct 2013 21:57:24 +0100
+Subject: [PATCH 24/36] Auto pad SWI dispatcher upto SWIDespatch_Size This is
+ helpful during development.
+
+---
+ castle/RiscOS/Sources/Kernel/hdr/KernelWS | 6 +++---
+ castle/RiscOS/Sources/Kernel/s/Kernel     | 3 ++-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/hdr/KernelWS b/castle/RiscOS/Sources/Kernel/hdr/KernelWS
+index c0186f8..87a4ed8 100644
+--- a/castle/RiscOS/Sources/Kernel/hdr/KernelWS
++++ b/castle/RiscOS/Sources/Kernel/hdr/KernelWS
+@@ -1828,12 +1828,12 @@ SvcTable                |#|     &400
+  ]
+  [ SupportARMT
+    [ ZeroPage = 0
+-SWIDespatch_Size        *       32*4
++SWIDespatch_Size        *       64*4 ; 32*4 FIXME
+    |
+-SWIDespatch_Size        *       33*4
++SWIDespatch_Size        *       64*4 ; 33*4 FIXME
+    ]
+  |
+-SWIDespatch_Size        *       30*4    ; can save 2 instructions if no Thumb
++SWIDespatch_Size        *       64*4 ; 30*4    ; can save 2 instructions if no Thumb
+  ]
+ SWIDespatch             |#|     SWIDespatch_Size
+ 
+diff --git a/castle/RiscOS/Sources/Kernel/s/Kernel b/castle/RiscOS/Sources/Kernel/s/Kernel
+index c4d2093..20caeb0 100644
+--- a/castle/RiscOS/Sources/Kernel/s/Kernel
++++ b/castle/RiscOS/Sources/Kernel/s/Kernel
+@@ -318,8 +318,9 @@ SVC_CallASWI * {PC}-SWIRelocation       ; CallASWI,CallASWIR12 re-entry point
+         BIC     r11, r11, #Auto_Error_SWI_bit
+ 
+         CMP     r11, #OS_WriteI
+-        LDRLO   pc, [pc, r11, LSL #2]
+ 
++        SPACE   SWIDespatch_Size-({PC}-SVCDespatcher)-8
++        LDRLO   pc, [pc, r11, LSL #2]
+         B       NotMainMOSSwi + SWIRelocation
+ 
+  ASSERT {PC}-SVCDespatcher = SWIDespatch_Size
+-- 
+1.8.4.rc3
+

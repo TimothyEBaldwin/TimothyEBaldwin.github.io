@@ -1,0 +1,220 @@
+From ddd5d85178f550a5daff4073d0c6139859f318b7 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Fri, 11 Oct 2013 23:10:10 +0100
+Subject: [PATCH 18/35] Change Generic32 and Generic26 to use vMRS and vMSR.
+
+---
+ .../Sources/Programmer/HdrSrc/hdr/CPU/Generic26    |  2 +-
+ .../Sources/Programmer/HdrSrc/hdr/CPU/Generic32    | 50 +++++++++++-----------
+ 2 files changed, 26 insertions(+), 26 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic26 b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic26
+index 07ab069..5827522 100644
+--- a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic26
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic26
+@@ -492,7 +492,7 @@ dst SETS "$pcr"
+         [ NoARMv3
+         MOV     $tmp, #0
+         ]
+-        MRS     $tmp, CPSR
++        vMRS    $tmp, CPSR
+         MVN     $tmp, $tmp, LSR #4        ; bit 0 set in *26, clear in *32
+         MOV     $tmp, $tmp, LSL #31       ; shift to top bit
+         MOV     $tmp, $tmp, ASR #7        ; duplicate to top 8 bits
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic32 b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic32
+index 0cdea7c..19ba30f 100644
+--- a/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic32
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/hdr/CPU/Generic32
+@@ -159,7 +159,7 @@ rcc     SETS    :REVERSE_CC:"$cond"
+         B$rcc   %FT02                   ; Go round when $cond-itional
+       ]
+         MOV     $srcreg, pc             ; Snapshot 26-bit PSR
+-        MRS     $srcreg, CPSR           ; Snapshot 32-bit PSR, or NOP pre ARMv3
++        vMRS    $srcreg, CPSR           ; Snapshot 32-bit PSR, or NOP pre ARMv3
+         TEQ     r0, r0                  ; Set Z
+         MSR     CPSR_f, #0              ; Clear Z if ARMv3 or later
+         BNE     %FT01
+@@ -177,7 +177,7 @@ rcc     SETS    :REVERSE_CC:"$cond"
+         somemsr AL, CPSR, $regtmp, CPU32_bits
+ 02
+     |
+-$label  MRS$cond $srcreg, CPSR
++$label  vMRS$cond $srcreg, CPSR
+         [ (CPU32_bits :AND: &F0000000) <> 0 :LAND: (CPU32_bits :AND: &F0) <> 0
+         ; Can't be expressed as a single ARM immediate constant
+         BIC$cond $regtmp, $srcreg, #CPU32_bits :AND: &F0000000
+@@ -234,13 +234,13 @@ $label
+ 01
+       ]
+   [ "$regtmp" = "" :LOR: StrongARM_MSR_bug
+-        MRS     $usereg, CPSR
++        vMRS    $usereg, CPSR
+         TST     $usereg, #I32_bit              ; is I32_bit set?
+         ORREQ   $usereg, $usereg, #I32_bit     ; no, then set it
+         mymsr   EQ, CPSR_c, $usereg, , safe
+         BICEQ   $usereg, $usereg, #I32_bit     ; $register contains original PSR
+   |
+-        MRS     $usereg, CPSR
++        vMRS    $usereg, CPSR
+         TST     $usereg, #I32_bit              ; is I32_bit set?
+         ORREQ   $regtmp, $usereg, #I32_bit     ; no, then set it
+         mymsr   EQ, CPSR_c, $regtmp            ; $register contains original PSR
+@@ -266,7 +266,7 @@ $label  TEQ     pc, pc                         ; Can only PLP in non user mode
+         TEQNEP  $usereg, PC
+         NOP
+       |
+-$label  MSR     CPSR_c, $usereg
++$label  vMSR    CPSR_c, $usereg
+       ]
+         MEND
+ 
+@@ -393,7 +393,7 @@ rcc     SETS    :REVERSE_CC:"$cond"
+         B$rcc   %FT02                   ; Go round when $cond-itional
+       ]
+         MOV     $srcreg, pc             ; Snapshot 26-bit PSR
+-        MRS     $srcreg, CPSR           ; Snapshot 32-bit PSR, or NOP pre ARMv3
++        vMRS    $srcreg, CPSR           ; Snapshot 32-bit PSR, or NOP pre ARMv3
+         TEQ     r0, r0                  ; Set Z
+         MSR     CPSR_f, #0              ; Clear Z if ARMv3 or later
+         BNE     %FT01
+@@ -428,7 +428,7 @@ srcreg  SETS "$regtmp"
+         somemsr  $cond, CPSR, $srcreg, CPU32_set:OR:CPU32_clr, unsafe
+ 02
+  |
+-$label  MRS$cond $srcreg, CPSR
++$label  vMRS$cond $srcreg, CPSR
+  [ (CPU32_set :AND: &F0000000) <> 0 :LAND: (CPU32_set :AND: &F0) <> 0
+         ORR$cond $regtmp, $srcreg, #CPU32_set :AND: &F0000000
+         ORR$cond $regtmp, $regtmp, #CPU32_set :AND: &0FFFFFFF
+@@ -461,9 +461,9 @@ srcreg  SETS "$regtmp"
+ $label  SavePSR $reg, $cond
+       [ NoARMv3
+ $label  MOV$cond $reg, pc               ; Benign on ARMv3+
+-        MRS$cond $reg, CPSR             ; NOP prior to ARMv3
++        vMRS$cond $reg, CPSR            ; NOP prior to ARMv3
+       |
+-$label  MRS$cond $reg, CPSR
++$label  vMRS$cond $reg, CPSR
+       ]
+         MEND
+ 
+@@ -509,7 +509,7 @@ rcc     SETS    :REVERSE_CC:"$cond"
+         BNE     %FT01
+         TEQP    pc, $reg                ; Let the following MSR be the NOP
+ 01
+-        MSR     CPSR_cf, $reg
++        vMSR    CPSR_cf, $reg
+ 02
+     |
+ $label  mymsr   $cond, CPSR_$field, $reg, , unsafe
+@@ -557,7 +557,7 @@ rcc     SETS    :REVERSE_CC:"$cond"
+         B$rcc   %FT02                   ; Go round when $cond-itional
+       ]
+         MOV     $srcreg, pc             ; Snapshot 26-bit PSR
+-        MRS     $srcreg, CPSR           ; Snapshot 32-bit PSR, or NOP pre ARMv3
++        vMRS    $srcreg, CPSR           ; Snapshot 32-bit PSR, or NOP pre ARMv3
+         TEQ     r0, r0                  ; Set Z
+         MSR     CPSR_f, #0              ; Clear Z if ARMv3 or later
+         BNE     %FT01
+@@ -575,7 +575,7 @@ rcc     SETS    :REVERSE_CC:"$cond"
+         somemsr AL, CPSR, $regtmp, CPU32_bits
+ 02
+     |
+-$label  MRS$cond $srcreg, CPSR
++$label  vMRS$cond $srcreg, CPSR
+         [ (CPU32_bits :AND: &F0000000) <> 0 :LAND: (CPU32_bits :AND: &F0) <> 0
+         ; Can't be expressed as a single ARM immediate constant
+         ORR$cond $regtmp, $srcreg, #CPU32_bits :AND: &F0000000
+@@ -628,7 +628,7 @@ rcc     SETS    :REVERSE_CC:"$cond"
+         B$rcc   %FT02                   ; Go round when $cond-itional
+       ]
+         MOV     $srcreg, pc             ; Snapshot 26-bit PSR
+-        MRS     $srcreg, CPSR           ; Snapshot 32-bit PSR, or NOP pre ARMv3
++        vMRS    $srcreg, CPSR           ; Snapshot 32-bit PSR, or NOP pre ARMv3
+         TEQ     r0, r0                  ; Set Z
+         MSR     CPSR_f, #0              ; Clear Z if ARMv3 or later
+         BNE     %FT01
+@@ -639,7 +639,7 @@ rcc     SETS    :REVERSE_CC:"$cond"
+         somemsr AL, CPSR, $regtmp, CPU32_bits
+ 02
+     |
+-$label  MRS$cond $srcreg, CPSR
++$label  vMRS$cond $srcreg, CPSR
+         EOR$cond $regtmp, $srcreg, #CPU32_bits
+         somemsr $cond, CPSR, $regtmp, CPU32_bits, unsafe
+     ]
+@@ -671,7 +671,7 @@ rcc     SETS    :REVERSE_CC:"$cond"
+         B$rcc   %FT02                   ; Go round when $cond-itional
+       ]
+         MOV     $srcreg, pc             ; Snapshot 26-bit PSR
+-        MRS     $srcreg, CPSR           ; Snapshot 32-bit PSR, or NOP pre ARMv3
++        vMRS    $srcreg, CPSR           ; Snapshot 32-bit PSR, or NOP pre ARMv3
+         TEQ     r0, r0                  ; Set Z
+         MSR     CPSR_f, #0              ; Clear Z if ARMv3 or later
+         BNE     %FT01
+@@ -679,10 +679,10 @@ rcc     SETS    :REVERSE_CC:"$cond"
+         B       %FT02
+ 01
+         EOR     $regtmp, $srcreg, $regtog
+-        MSR     CPSR_$field, $regtmp
++        vMSR    CPSR_$field, $regtmp
+ 02
+     |
+-$label  MRS$cond $srcreg, CPSR
++$label  vMRS$cond $srcreg, CPSR
+         EOR$cond $regtmp, $srcreg, $regtog
+         mymsr    $cond, CPSR_$field, $regtmp, , unsafe
+     ]
+@@ -713,7 +713,7 @@ $label  SCPSR   $value, (I_bit+F_bit+SVC_mode):EOR:($value), $regtmp, $cond, $ol
+ ;*****************************************************
+         MACRO
+ $label  mrs     $cond, $rd, $psrs
+-$label  MRS$cond $rd, $psrs
++$label  vMRS$cond $rd, $psrs
+         MEND
+ 
+         MACRO
+@@ -754,7 +754,7 @@ $label  mymsr   $cond, $s, $op, , $sabug
+ ;*****************************************************
+         MACRO
+ $label  mymrs   $cond, $rd, $psrs
+-$label  MRS$cond $rd, $psrs
++$label  vMRS$cond $rd, $psrs
+         ASSERT  $rd <> 15
+         MEND
+ 
+@@ -795,9 +795,9 @@ s       SETS    s:CC:"_cf"
+  ]
+ 
+  [ "$op2b" = ""
+-        MSR$cond $s, $op2a
++        vMSR$cond $s, $op2a
+  |
+-        MSR$cond $s, $op2a, $op2b
++        vMSR$cond $s, $op2a, $op2b
+  ]
+ 
+      [ StrongARM_MSR_bug :LAND: "$sabug" <> "safe" :LAND: "$cond" <> "AL" :LAND: "$cond" <> "" :LAND: (((:UPPERCASE:s):LEFT:6) = "CPSR_C")
+@@ -816,15 +816,15 @@ s       SETS    s:CC:"_cf"
+         MACRO
+         SetMode $newmode, $regtmp, $oldpsr
+       [ "$oldpsr"=""
+-        MRS     $regtmp, CPSR
++        vMRS    $regtmp, CPSR
+         BIC     $regtmp, $regtmp, #M32_bits
+         ORR     $regtmp, $regtmp, #$newmode
+-        MSR     CPSR_c, $regtmp
++        vMSR    CPSR_c, $regtmp
+       |
+-        MRS     $oldpsr, CPSR
++        vMRS    $oldpsr, CPSR
+         BIC     $regtmp, $oldpsr, #M32_bits
+         ORR     $regtmp, $regtmp, #$newmode
+-        MSR      CPSR_c, $regtmp
++        vMSR    CPSR_c, $regtmp
+       ]
+         MEND
+ 
+-- 
+1.8.4.rc3
+

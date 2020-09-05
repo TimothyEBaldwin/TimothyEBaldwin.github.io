@@ -1,0 +1,28 @@
+From 3ade21fc84cce719eb0ad9ccf195db646d654b38 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Fri, 11 Oct 2013 11:18:41 +0100
+Subject: [PATCH 25/36] Fix ROMLimit check for callbacks to work with precise
+ ROMLimit.
+
+---
+ castle/RiscOS/Sources/Kernel/s/Kernel | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/s/Kernel b/castle/RiscOS/Sources/Kernel/s/Kernel
+index 20caeb0..9b0b5cb 100644
+--- a/castle/RiscOS/Sources/Kernel/s/Kernel
++++ b/castle/RiscOS/Sources/Kernel/s/Kernel
+@@ -645,8 +645,8 @@ callback_checking
+         CMP     r0, #ROM
+         BHS     Do_CallBack
+  |
+-        CMP     r0, #ROM
+-        RSBHIS  r12, r0, #ROMLimit
++        SUBS    r12, r0, #ROM
++        RSBHIS  r12, r12, #ROMLimit - ROM
+         BHI     Do_CallBack
+  ]
+       [ :LNOT: FixCallBacks
+-- 
+1.8.4.rc3
+

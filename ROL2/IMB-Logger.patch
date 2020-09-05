@@ -1,0 +1,80 @@
+From 0da203b92ee135ec00d5f0c6bec45368b212b2b4 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Tue, 21 Feb 2017 21:43:32 +0000
+Subject: [PATCH 3/4] IMB Logger
+
+---
+ castle/RiscOS/Sources/Kernel/s/Linux | 23 +++++++++++++++++++++--
+ mixed/Linux/Support/swi_log.cpp      | 21 +++++++++++++++++++++
+ 2 files changed, 42 insertions(+), 2 deletions(-)
+ create mode 100644 mixed/Linux/Support/swi_log.cpp
+
+diff --git a/castle/RiscOS/Sources/Kernel/s/Linux b/castle/RiscOS/Sources/Kernel/s/Linux
+index afa4b2ea..f6626e62 100644
+--- a/castle/RiscOS/Sources/Kernel/s/Linux
++++ b/castle/RiscOS/Sources/Kernel/s/Linux
+@@ -111,13 +111,32 @@ do_IMB_Range
+         Pull    "a1-a4, ip, pc"
+ 
+ SyncCodeAreasFull
++        Push    "a1-a4, r7, ip, lr"
++        MOV     r7, #__NR_write
++        MOV     r0, #40
++        ADD     r1, sp, #9*4
++        MOV     r2, #4
++        BL      __PVirt_syscall
++        LDMFD   sp, {a1-a4}
++        MOV     a2, #0
++        MOV     a3, #0xFFFFFFFC
++        MOV     lr, pc
++        LDR     pc, =do_IMB
++        Pull    "a1-a4, r7, ip, pc"
++
+ do_IMB_Full
+-        Push    "a1-a4, ip, lr"
++        Push    "a1-a4, r7, ip, lr"
++        MOV     r7, #__NR_write
++        MOV     r0, #40
++        ADD     r1, sp, #6*4
++        MOV     r2, #4
++        BL      __PVirt_syscall
++        LDMFD   sp, {a1-a4}
+         MOV     a2, #0
+         MOV     a3, #0xFFFFFFFC
+         MOV     lr, pc
+         LDR     pc, =do_IMB
+-        Pull    "a1-a4, ip, pc"
++        Pull    "a1-a4, r7, ip, pc"
+ 
+ UND_Op
+         DebugTX "Bad ARMOp"
+diff --git a/mixed/Linux/Support/swi_log.cpp b/mixed/Linux/Support/swi_log.cpp
+new file mode 100644
+index 00000000..8e947da6
+--- /dev/null
++++ b/mixed/Linux/Support/swi_log.cpp
+@@ -0,0 +1,21 @@
++#include <cstdint>
++#include <iostream>
++#include <map>
++
++using namespace std;
++
++map<uint32_t, uint64_t> counts;
++
++int main() {
++  while(cin.good()) {
++    uint32_t s = 0;
++    cin.read(reinterpret_cast<char *>(&s), 4);
++    ++counts[s];
++  }
++
++  for(auto &i : counts) {
++    cout << i.first << ",0x" << hex << i.first << dec << ',' << i.second << endl;
++  }
++
++  return 0;
++}
+-- 
+2.11.0
+

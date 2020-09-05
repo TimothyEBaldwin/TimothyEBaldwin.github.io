@@ -1,0 +1,53 @@
+From a99dc6c205abf1fbf35ea75755e1c88b7a2fc37e Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Thu, 24 Oct 2013 00:04:18 +0100
+Subject: [PATCH 05/35] Preserve LR and CPSR in DebugTX
+
+---
+ castle/RiscOS/Sources/Kernel/hdr/Kernel | 2 ++
+ castle/RiscOS/Sources/Kernel/s/HAL      | 6 ++++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/hdr/Kernel b/castle/RiscOS/Sources/Kernel/hdr/Kernel
+index ee26820..20b261b 100644
+--- a/castle/RiscOS/Sources/Kernel/hdr/Kernel
++++ b/castle/RiscOS/Sources/Kernel/hdr/Kernel
+@@ -28,9 +28,11 @@
+         MACRO
+         DebugTX $str
+     [ DebugHALTX
++        STR     lr, [sp, #-4]!
+         BL      DebugHALPrint
+         =       "$str", 0
+         ALIGN
++        LDR     lr, [sp], #4
+     ]
+         MEND
+ 
+diff --git a/castle/RiscOS/Sources/Kernel/s/HAL b/castle/RiscOS/Sources/Kernel/s/HAL
+index 6cbb948..0acb983 100644
+--- a/castle/RiscOS/Sources/Kernel/s/HAL
++++ b/castle/RiscOS/Sources/Kernel/s/HAL
+@@ -2863,7 +2863,8 @@ Reset_IRQ_Exit
+ 
+  [ DebugHALTX
+ DebugHALPrint
+-        Push    "a1-a4,v1,sb,ip"
++        Push    "a1-a4,v1,v2,sb,ip"
++        MRS     v2, CPSR
+         AddressHAL
+         MOV     v1, lr
+ 10      LDRB    a1, [v1], #1
+@@ -2877,7 +2878,8 @@ DebugHALPrint
+         CallHAL HAL_DebugTX
+         ADD     v1, v1, #3
+         BIC     lr, v1, #3
+-        Pull    "a1-a4,v1,sb,ip"
++        MSR     CPSR_sf, v2
++        Pull    "a1-a4,v1,v2,sb,ip"
+         MOV     pc, lr
+  ]
+ 
+-- 
+1.8.4.rc3
+

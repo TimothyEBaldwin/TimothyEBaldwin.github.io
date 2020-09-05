@@ -1,0 +1,2396 @@
+From dbcb9ae764baa34691ae03a90ac529a522e094a4 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Mon, 7 Oct 2013 22:21:14 +0100
+Subject: [PATCH 11/35] Move dependencies to separate files.
+
+---
+ bsd/RiscOS/Sources/Audio/SharedSnd/Makefile        |   2 +-
+ bsd/RiscOS/Sources/HWSupport/VFPSupport/Makefile   |   2 +-
+ castle/RiscOS/Sources/Apps/Alarm/Makefile          |   2 +-
+ castle/RiscOS/Sources/Apps/Chars/Makefile          |   2 +-
+ castle/RiscOS/Sources/Apps/Draw/Makefile           |   2 +-
+ castle/RiscOS/Sources/Apps/Edit/Makefile           |   2 +-
+ castle/RiscOS/Sources/Apps/Help2/Makefile          |   2 +-
+ castle/RiscOS/Sources/Apps/Paint/Makefile          |   2 +-
+ castle/RiscOS/Sources/Desktop/Desktop/Makefile     |   2 +-
+ castle/RiscOS/Sources/Desktop/DragASprit/Makefile  |   2 +-
+ castle/RiscOS/Sources/Desktop/DragAnObj/Makefile   |   2 +-
+ castle/RiscOS/Sources/Desktop/Filer/Makefile       |   2 +-
+ castle/RiscOS/Sources/Desktop/FilerAct/Makefile    |   2 +-
+ castle/RiscOS/Sources/Desktop/FilerSWIs/Makefile   |   2 +-
+ castle/RiscOS/Sources/Desktop/Filter/Makefile      |   2 +-
+ castle/RiscOS/Sources/Desktop/Free/Makefile        |   2 +-
+ castle/RiscOS/Sources/Desktop/Pinboard/Makefile    |   2 +-
+ castle/RiscOS/Sources/Desktop/ShellCLI/Makefile    |   2 +-
+ castle/RiscOS/Sources/Desktop/Switcher/Makefile    |   2 +-
+ castle/RiscOS/Sources/Desktop/TaskWindow/Makefile  |   2 +-
+ castle/RiscOS/Sources/Desktop/Wimp/Makefile        |   2 +-
+ castle/RiscOS/Sources/Desktop/WimpUtils/Makefile   |   2 +-
+ castle/RiscOS/Sources/FileSys/ADFS/ADFS/Makefile   |   2 +-
+ .../RiscOS/Sources/FileSys/ADFS/ADFSFiler/Makefile |   2 +-
+ castle/RiscOS/Sources/FileSys/CDFS/CDFS/Makefile   |   2 +-
+ .../RiscOS/Sources/FileSys/CDFS/CDFSFiler/Makefile |   2 +-
+ castle/RiscOS/Sources/FileSys/FSLock/Makefile      |   2 +-
+ castle/RiscOS/Sources/FileSys/FileCore/Makefile    |   2 +-
+ .../Sources/FileSys/FileCore/Test/Tester/Makefile  |   2 +-
+ castle/RiscOS/Sources/FileSys/FileSwitch/Makefile  |   2 +-
+ .../RiscOS/Sources/FileSys/ImageFS/DOSFS/Makefile  |   2 +-
+ castle/RiscOS/Sources/FileSys/NetFS/NetFS/Makefile |   2 +-
+ .../RiscOS/Sources/FileSys/NetFS/NetFiler/Makefile |   2 +-
+ castle/RiscOS/Sources/FileSys/NetPrint/Makefile    |   2 +-
+ .../Sources/FileSys/PCCardFS/PCCardFS/Makefile     |   2 +-
+ castle/RiscOS/Sources/FileSys/PipeFS/Makefile      |   2 +-
+ castle/RiscOS/Sources/FileSys/RAMFS/RAMFS/Makefile |   2 +-
+ .../Sources/FileSys/RAMFS/RAMFSFiler/Makefile      |   2 +-
+ .../Sources/FileSys/ResourceFS/ResFiler/Makefile   |   2 +-
+ .../Sources/FileSys/ResourceFS/ResourceFS/Makefile |   2 +-
+ .../RiscOS/Sources/FileSys/SCSIFS/SCSIFS/Makefile  |   2 +-
+ castle/RiscOS/Sources/HAL/IOMD/Makefile            |   2 +-
+ castle/RiscOS/Sources/HWSupport/Buffers/Makefile   |   2 +-
+ castle/RiscOS/Sources/HWSupport/CD/ATAPI/Makefile  |   2 +-
+ .../Sources/HWSupport/CD/CDFSDriver/Makefile       |   2 +-
+ castle/RiscOS/Sources/HWSupport/DMA/Makefile       |   2 +-
+ castle/RiscOS/Sources/HWSupport/DeviceFS/Makefile  |   2 +-
+ castle/RiscOS/Sources/HWSupport/IIC/Makefile       |   2 +-
+ castle/RiscOS/Sources/HWSupport/Joystick/Makefile  |   2 +-
+ castle/RiscOS/Sources/HWSupport/Mouse/Makefile     |   2 +-
+ castle/RiscOS/Sources/HWSupport/NVRAM/Makefile     |   2 +-
+ .../NVRAM/Utils/Lazarus/MakeImage/Makefile         |   2 +-
+ castle/RiscOS/Sources/HWSupport/PCI/Makefile       |   2 +-
+ castle/RiscOS/Sources/HWSupport/PS2Driver/Makefile |   2 +-
+ castle/RiscOS/Sources/HWSupport/Parallel/Makefile  |   2 +-
+ castle/RiscOS/Sources/HWSupport/Podule/Makefile    |   2 +-
+ castle/RiscOS/Sources/HWSupport/PortMan/Makefile   |   2 +-
+ castle/RiscOS/Sources/HWSupport/Portable/Makefile  |   2 +-
+ castle/RiscOS/Sources/HWSupport/RTCAdjust/Makefile |   2 +-
+ .../Sources/HWSupport/SCSI/SCSIDriver/Makefile     |   2 +-
+ castle/RiscOS/Sources/HWSupport/SerMouse/Makefile  |   2 +-
+ castle/RiscOS/Sources/HWSupport/Serial/Makefile    |   2 +-
+ castle/RiscOS/Sources/HWSupport/SerialSpt/Makefile |   2 +-
+ .../RiscOS/Sources/HWSupport/Sound/Sound0/Makefile |   2 +-
+ .../RiscOS/Sources/HWSupport/Sound/Sound1/Makefile |   2 +-
+ .../RiscOS/Sources/HWSupport/Sound/Sound2/Makefile |   2 +-
+ .../HWSupport/Sound/Voices/Percussion/Makefile     |   2 +-
+ .../HWSupport/Sound/Voices/StringLib/Makefile      |   2 +-
+ .../HWSupport/Sound/Voices/WaveSynth/Makefile      |   2 +-
+ .../RiscOS/Sources/HWSupport/SystemDevs/Makefile   |   2 +-
+ castle/RiscOS/Sources/HWSupport/UnSqzAIF/Makefile  |   2 +-
+ castle/RiscOS/Sources/Internat/IntKey/Makefile     |   2 +-
+ castle/RiscOS/Sources/Internat/Inter/Makefile      |   2 +-
+ castle/RiscOS/Sources/Internat/Messages/Makefile   |   2 +-
+ .../Sources/Internat/Messages/Utils/Makefile       |   2 +-
+ castle/RiscOS/Sources/Internat/MsgTrans/Makefile   |   2 +-
+ .../Sources/Internat/Territory/Manager/Makefile    |   2 +-
+ .../Sources/Internat/Territory/Module/Makefile     |   2 +-
+ castle/RiscOS/Sources/Kernel/Dev/HeapTest/Makefile |   2 +-
+ castle/RiscOS/Sources/Kernel/Dev/IICTest/Makefile  |  23 +--
+ castle/RiscOS/Sources/Kernel/Makefile              |   2 +-
+ .../RiscOS/Sources/Kernel/hdr/ExportVals/Makefile  |   2 +-
+ castle/RiscOS/Sources/Lib/AsmUtils/Makefile        |   2 +-
+ castle/RiscOS/Sources/Lib/Configure/Makefile       |   2 +-
+ castle/RiscOS/Sources/Lib/DebugLib/Makefile        |   2 +-
+ .../Sources/Lib/DebugLib/Tests/CLI_App/Makefile    |   2 +-
+ .../Sources/Lib/DebugLib/Tests/GUI_Test/Makefile   |   2 +-
+ .../Sources/Lib/DebugLib/Tests/TestMod/Makefile    |   2 +-
+ castle/RiscOS/Sources/Lib/ModMalloc/Makefile       |   2 +-
+ castle/RiscOS/Sources/Lib/PDebug/Makefile          |   2 +-
+ .../Sources/Lib/PDebug/Utils/PDebugM/Makefile      |   2 +-
+ .../Sources/Lib/PDebug/Utils/SimpleRec/Makefile    |   2 +-
+ .../Sources/Lib/PDebug/Utils/SimpleSend/Makefile   |   2 +-
+ castle/RiscOS/Sources/Lib/PlainArgv/Makefile       |   2 +-
+ castle/RiscOS/Sources/Lib/RISC_OSLib/Makefile      |   2 +-
+ .../Sources/Lib/RISC_OSLib/test/!TboxCalc/Makefile |   2 +-
+ castle/RiscOS/Sources/Lib/Unicode/Makefile         |   2 +-
+ castle/RiscOS/Sources/Lib/callx/Makefile           |   2 +-
+ castle/RiscOS/Sources/Lib/remotedb/Makefile        |   2 +-
+ .../RiscOS/Sources/Networking/AUN/AUNMsgs/Makefile |   2 +-
+ .../Sources/Networking/AUN/Access/Freeway/Makefile |   2 +-
+ .../RiscOS/Sources/Networking/AUN/BootNet/Makefile |   2 +-
+ castle/RiscOS/Sources/Networking/AUN/Net/Makefile  |   2 +-
+ .../Sources/Networking/AUN/Net/podule/Makefile     | 165 +--------------------
+ .../RiscOS/Sources/Networking/BBCEconet/Makefile   |   2 +-
+ castle/RiscOS/Sources/Networking/DHCP/Makefile     |   2 +-
+ .../Sources/Networking/Econet/Loader/Makefile      |  14 +-
+ castle/RiscOS/Sources/Networking/Econet/Makefile   |   2 +-
+ .../RiscOS/Sources/Networking/NetStatus/Makefile   |   2 +-
+ .../Networking/Omni/Protocols/LanManFS/Makefile    |   2 +-
+ .../Sources/Printing/Modules/MakePSFont/Makefile   |   2 +-
+ .../Sources/Printing/Modules/PDriver/Makefile      |   2 +-
+ castle/RiscOS/Sources/Printing/PDumpers/Makefile   |   2 +-
+ .../Sources/Printing/PDumpers/PDumper24/Makefile   |   2 +-
+ .../Sources/Printing/PDumpers/PDumperCX/Makefile   |   2 +-
+ .../Sources/Printing/PDumpers/PDumperDM/Makefile   |   2 +-
+ .../Sources/Printing/PDumpers/PDumperE2/Makefile   |   2 +-
+ .../Sources/Printing/PDumpers/PDumperIW/Makefile   |   2 +-
+ .../Sources/Printing/PDumpers/PDumperLJ/Makefile   |   2 +-
+ .../Sources/Printing/PDumpers/PDumperPCL/Makefile  |   2 +-
+ .../Sources/Printing/PDumpers/PDumperSP/Makefile   |   2 +-
+ castle/RiscOS/Sources/Programmer/BASIC/Makefile    |   2 +-
+ .../RiscOS/Sources/Programmer/BASICTrans/Makefile  |   2 +-
+ castle/RiscOS/Sources/Programmer/BootCmds/Makefile |   2 +-
+ castle/RiscOS/Sources/Programmer/DDEUtils/Makefile |   2 +-
+ castle/RiscOS/Sources/Programmer/DDT/Makefile      |   2 +-
+ castle/RiscOS/Sources/Programmer/Debugger/Makefile |   2 +-
+ castle/RiscOS/Sources/Programmer/HdrSrc/Makefile   |   2 +-
+ castle/RiscOS/Sources/Programmer/HostFS/Makefile   |   2 +-
+ castle/RiscOS/Sources/Programmer/Obey/Makefile     |   2 +-
+ castle/RiscOS/Sources/SystemRes/HeroNames/Makefile |   2 +-
+ castle/RiscOS/Sources/Toolbox/ColourDbox/Makefile  |   2 +-
+ castle/RiscOS/Sources/Toolbox/ColourMenu/Makefile  |   2 +-
+ castle/RiscOS/Sources/Toolbox/Common/Makefile      |   2 +-
+ castle/RiscOS/Sources/Toolbox/DCS/Makefile         |   2 +-
+ castle/RiscOS/Sources/Toolbox/FileInfo/Makefile    |   2 +-
+ castle/RiscOS/Sources/Toolbox/FontDbox/Makefile    |   2 +-
+ castle/RiscOS/Sources/Toolbox/FontMenu/Makefile    |   2 +-
+ castle/RiscOS/Sources/Toolbox/Gadgets/Makefile     |   2 +-
+ castle/RiscOS/Sources/Toolbox/IconBar/Makefile     |   2 +-
+ .../RiscOS/Sources/Toolbox/Libs/eventlib/Makefile  |   2 +-
+ .../RiscOS/Sources/Toolbox/Libs/flexlib/Makefile   |   2 +-
+ .../RiscOS/Sources/Toolbox/Libs/renderlib/Makefile |   2 +-
+ .../Sources/Toolbox/Libs/toolboxlib/Makefile       |   2 +-
+ .../RiscOS/Sources/Toolbox/Libs/wimplib/Makefile   |   2 +-
+ castle/RiscOS/Sources/Toolbox/Menu/Makefile        |   2 +-
+ castle/RiscOS/Sources/Toolbox/PrintDbox/Makefile   |   2 +-
+ castle/RiscOS/Sources/Toolbox/ProgInfo/Makefile    |   2 +-
+ castle/RiscOS/Sources/Toolbox/SaveAs/Makefile      |   2 +-
+ castle/RiscOS/Sources/Toolbox/Scale/Makefile       |   2 +-
+ castle/RiscOS/Sources/Toolbox/TinyStubs/Makefile   |   2 +-
+ castle/RiscOS/Sources/Toolbox/ToolAction/Makefile  |   2 +-
+ castle/RiscOS/Sources/Toolbox/Toolbox/Makefile     |   2 +-
+ castle/RiscOS/Sources/Toolbox/Window/Makefile      |   2 +-
+ .../Sources/Video/HWSupport/VIDC20Video/Makefile   |   2 +-
+ .../RiscOS/Sources/Video/Render/Colours/Makefile   |   2 +-
+ castle/RiscOS/Sources/Video/Render/Draw/Makefile   |   2 +-
+ .../RiscOS/Sources/Video/Render/DrawFile/Makefile  |   2 +-
+ .../Sources/Video/Render/Fonts/ITable/Makefile     |   2 +-
+ .../Sources/Video/Render/Fonts/Manager/Makefile    |   2 +-
+ .../Sources/Video/Render/Fonts/ROMFonts/Makefile   |   2 +-
+ .../Video/Render/Hourglass/Hourmake/Makefile       |   2 +-
+ .../RiscOS/Sources/Video/Render/Hourglass/Makefile |   2 +-
+ .../RiscOS/Sources/Video/Render/ScrBlank/Makefile  |   2 +-
+ .../Sources/Video/Render/SpriteUtil/Makefile       |   2 +-
+ castle/RiscOS/Sources/Video/Render/Super/Makefile  |   2 +-
+ castle/RiscOS/Sources/Video/UserI/Display/Makefile |   2 +-
+ castle/RiscOS/Sources/Video/UserI/Picker/Makefile  |   2 +-
+ .../RiscOS/Sources/Video/UserI/ScrModes/Makefile   |   2 +-
+ .../RiscOS/Sources/Video/UserI/ScrSaver/Makefile   |   2 +-
+ .../Sources/ThirdParty/JSmith/Lib/DDTLib/Makefile  |   2 +-
+ .../Sources/ThirdParty/JSmith/Lib/Trace/Makefile   |   2 +-
+ .../Sources/ThirdParty/JSmith/Lib/Wild/Makefile    |   2 +-
+ .../RiscOS/Sources/HWSupport/FPASC/riscos/Makefile |   2 +-
+ .../RiscOS/Sources/Lib/TCPIPLibs/inetlib/Makefile  |   2 +-
+ .../Sources/Lib/TCPIPLibs/rpclib/rpc/Makefile      |   2 +-
+ .../RiscOS/Sources/Lib/TCPIPLibs/socklib/Makefile  |   2 +-
+ .../RiscOS/Sources/Lib/TCPIPLibs/unixlib/Makefile  |   2 +-
+ .../Sources/Networking/AUN/Internet/build/Makefile |   2 +-
+ mixed/RiscOS/Sources/Programmer/Squash/Makefile    |   2 +-
+ .../SystemRes/Internet/Sources/arp/Makefile        |   2 +-
+ .../SystemRes/Internet/Sources/gethost/Makefile    |   2 +-
+ .../SystemRes/Internet/Sources/host/Makefile       |   2 +-
+ .../SystemRes/Internet/Sources/ifconfig/Makefile   |   2 +-
+ .../SystemRes/Internet/Sources/ifrconfig/Makefile  |   2 +-
+ .../SystemRes/Internet/Sources/inetstat/Makefile   |   2 +-
+ .../SystemRes/Internet/Sources/ipvars/Makefile     |   2 +-
+ .../SystemRes/Internet/Sources/map-mbone/Makefile  |   2 +-
+ .../SystemRes/Internet/Sources/mrinfo/Makefile     |   2 +-
+ .../SystemRes/Internet/Sources/mtrace/Makefile     |   2 +-
+ .../SystemRes/Internet/Sources/newfiler/Makefile   |   2 +-
+ .../SystemRes/Internet/Sources/ping/Makefile       |   2 +-
+ .../SystemRes/Internet/Sources/pong/Makefile       |   2 +-
+ .../SystemRes/Internet/Sources/route/Makefile      |   2 +-
+ .../SystemRes/Internet/Sources/showstat/Makefile   |   2 +-
+ .../SystemRes/Internet/Sources/sysctl/Makefile     |   2 +-
+ .../SystemRes/Internet/Sources/traceroute/Makefile |   2 +-
+ .../SystemRes/Internet/Sources/utils/Makefile      |   2 +-
+ .../RiscOS/Sources/Video/Render/SprExtend/Makefile |   2 +-
+ 199 files changed, 199 insertions(+), 395 deletions(-)
+
+diff --git a/bsd/RiscOS/Sources/Audio/SharedSnd/Makefile b/bsd/RiscOS/Sources/Audio/SharedSnd/Makefile
+index fb1a4ef..f04b4ae 100644
+--- a/bsd/RiscOS/Sources/Audio/SharedSnd/Makefile
++++ b/bsd/RiscOS/Sources/Audio/SharedSnd/Makefile
+@@ -33,4 +33,4 @@ ROM_SOURCE = Gets.s
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/bsd/RiscOS/Sources/HWSupport/VFPSupport/Makefile b/bsd/RiscOS/Sources/HWSupport/VFPSupport/Makefile
+index 3fbb0db..d5a4bb8 100644
+--- a/bsd/RiscOS/Sources/HWSupport/VFPSupport/Makefile
++++ b/bsd/RiscOS/Sources/HWSupport/VFPSupport/Makefile
+@@ -35,4 +35,4 @@ ROM_SOURCE = GetAll.s
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Apps/Alarm/Makefile b/castle/RiscOS/Sources/Apps/Alarm/Makefile
+index 495bb26..49c3c69 100644
+--- a/castle/RiscOS/Sources/Apps/Alarm/Makefile
++++ b/castle/RiscOS/Sources/Apps/Alarm/Makefile
+@@ -145,4 +145,4 @@ bbe-alarm: bbe-generic
+         BBE_Export_Dir Resources
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Apps/Chars/Makefile b/castle/RiscOS/Sources/Apps/Chars/Makefile
+index 9b691be..5cdc1bd 100644
+--- a/castle/RiscOS/Sources/Apps/Chars/Makefile
++++ b/castle/RiscOS/Sources/Apps/Chars/Makefile
+@@ -134,4 +134,4 @@ bbe-chars: bbe-generic
+         BBE_Export_Dir Resources
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Apps/Draw/Makefile b/castle/RiscOS/Sources/Apps/Draw/Makefile
+index 10393a3..ee2931e 100644
+--- a/castle/RiscOS/Sources/Apps/Draw/Makefile
++++ b/castle/RiscOS/Sources/Apps/Draw/Makefile
+@@ -313,4 +313,4 @@ Debug.${APP}.Sprites: $(RDIR).Sprites
+ Debug.${APP}.Templates: $(LDIR).Templates
+         ${CP} $(LDIR).Templates $@ ${CPFLAGS}
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Apps/Edit/Makefile b/castle/RiscOS/Sources/Apps/Edit/Makefile
+index a1bb2e6..d4ca7c6 100644
+--- a/castle/RiscOS/Sources/Apps/Edit/Makefile
++++ b/castle/RiscOS/Sources/Apps/Edit/Makefile
+@@ -189,4 +189,4 @@ debug.${APP}.!RunImage: ${OBJSD} ${RLIB} ${CLIB}
+         ${LD} -o $@ -debug ${OBJSD} ${RLIB} ${CLIB}
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Apps/Help2/Makefile b/castle/RiscOS/Sources/Apps/Help2/Makefile
+index f5338a4..83fb870 100644
+--- a/castle/RiscOS/Sources/Apps/Help2/Makefile
++++ b/castle/RiscOS/Sources/Apps/Help2/Makefile
+@@ -166,4 +166,4 @@ bbe-help2: bbe-generic
+ 
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Apps/Paint/Makefile b/castle/RiscOS/Sources/Apps/Paint/Makefile
+index caf268f..797fc86 100644
+--- a/castle/RiscOS/Sources/Apps/Paint/Makefile
++++ b/castle/RiscOS/Sources/Apps/Paint/Makefile
+@@ -255,4 +255,4 @@ debug.${APP}.Templates: ${LDIR}.Templates
+         ${CP} ${LDIR}.Templates $@ ${CPFLAGS}
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/Desktop/Makefile b/castle/RiscOS/Sources/Desktop/Desktop/Makefile
+index c8fb5de..ff1e55e 100644
+--- a/castle/RiscOS/Sources/Desktop/Desktop/Makefile
++++ b/castle/RiscOS/Sources/Desktop/Desktop/Makefile
+@@ -46,4 +46,4 @@ endif
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/DragASprit/Makefile b/castle/RiscOS/Sources/Desktop/DragASprit/Makefile
+index 57fb3b6..4a2a55d 100644
+--- a/castle/RiscOS/Sources/Desktop/DragASprit/Makefile
++++ b/castle/RiscOS/Sources/Desktop/DragASprit/Makefile
+@@ -34,4 +34,4 @@ RESOURCES  = no
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/DragAnObj/Makefile b/castle/RiscOS/Sources/Desktop/DragAnObj/Makefile
+index 3df91cb..fb629b0 100644
+--- a/castle/RiscOS/Sources/Desktop/DragAnObj/Makefile
++++ b/castle/RiscOS/Sources/Desktop/DragAnObj/Makefile
+@@ -31,4 +31,4 @@ RESOURCES = no
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/Filer/Makefile b/castle/RiscOS/Sources/Desktop/Filer/Makefile
+index 8ba9658..901d3a2 100644
+--- a/castle/RiscOS/Sources/Desktop/Filer/Makefile
++++ b/castle/RiscOS/Sources/Desktop/Filer/Makefile
+@@ -33,4 +33,4 @@ TOKHELPSRC    = ${TOKENSOURCE}
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/FilerAct/Makefile b/castle/RiscOS/Sources/Desktop/FilerAct/Makefile
+index 6aa73bd..5357432 100644
+--- a/castle/RiscOS/Sources/Desktop/FilerAct/Makefile
++++ b/castle/RiscOS/Sources/Desktop/FilerAct/Makefile
+@@ -181,4 +181,4 @@ o.ModuleWrap: s.ModuleWrap
+ s.ModuleWrap: ${WRAPPER}
+         ${CP} ${WRAPPER} $@ ${CPFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/FilerSWIs/Makefile b/castle/RiscOS/Sources/Desktop/FilerSWIs/Makefile
+index 8d150aa..26f812b 100644
+--- a/castle/RiscOS/Sources/Desktop/FilerSWIs/Makefile
++++ b/castle/RiscOS/Sources/Desktop/FilerSWIs/Makefile
+@@ -31,4 +31,4 @@ RESOURCES = no
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/Filter/Makefile b/castle/RiscOS/Sources/Desktop/Filter/Makefile
+index bf3d0a4..c11d9ae 100644
+--- a/castle/RiscOS/Sources/Desktop/Filter/Makefile
++++ b/castle/RiscOS/Sources/Desktop/Filter/Makefile
+@@ -32,4 +32,4 @@ HEADER1   = Filter
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/Free/Makefile b/castle/RiscOS/Sources/Desktop/Free/Makefile
+index d37a7a9..d111798 100644
+--- a/castle/RiscOS/Sources/Desktop/Free/Makefile
++++ b/castle/RiscOS/Sources/Desktop/Free/Makefile
+@@ -35,4 +35,4 @@ EXPORTS = ${C_EXP_HDR}.Free
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/Pinboard/Makefile b/castle/RiscOS/Sources/Desktop/Pinboard/Makefile
+index 38b603e..0d9be0b 100644
+--- a/castle/RiscOS/Sources/Desktop/Pinboard/Makefile
++++ b/castle/RiscOS/Sources/Desktop/Pinboard/Makefile
+@@ -30,4 +30,4 @@ RESOURCEEXTRA = resources_templates
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/ShellCLI/Makefile b/castle/RiscOS/Sources/Desktop/ShellCLI/Makefile
+index 238f1c4..00302b5 100644
+--- a/castle/RiscOS/Sources/Desktop/ShellCLI/Makefile
++++ b/castle/RiscOS/Sources/Desktop/ShellCLI/Makefile
+@@ -34,4 +34,4 @@ HEADER1   = Shell
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/Switcher/Makefile b/castle/RiscOS/Sources/Desktop/Switcher/Makefile
+index 2ba1a68..2859f91 100644
+--- a/castle/RiscOS/Sources/Desktop/Switcher/Makefile
++++ b/castle/RiscOS/Sources/Desktop/Switcher/Makefile
+@@ -44,4 +44,4 @@ resources-special:
+         @echo ${COMPONENT}: resource files copied
+ 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/TaskWindow/Makefile b/castle/RiscOS/Sources/Desktop/TaskWindow/Makefile
+index 47e7729..c749393 100644
+--- a/castle/RiscOS/Sources/Desktop/TaskWindow/Makefile
++++ b/castle/RiscOS/Sources/Desktop/TaskWindow/Makefile
+@@ -35,4 +35,4 @@ HEADER1     = TaskWindow
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/Wimp/Makefile b/castle/RiscOS/Sources/Desktop/Wimp/Makefile
+index ee4d91f..46edc42 100644
+--- a/castle/RiscOS/Sources/Desktop/Wimp/Makefile
++++ b/castle/RiscOS/Sources/Desktop/Wimp/Makefile
+@@ -92,4 +92,4 @@ bbe-wimp: bbe-generic-resources-get-alias
+         BBE_Export_Dir Resources.${LOCALE}.${USERIF}
+         BBE_Export_File VersionNum
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Desktop/WimpUtils/Makefile b/castle/RiscOS/Sources/Desktop/WimpUtils/Makefile
+index d874d35..84b227e 100644
+--- a/castle/RiscOS/Sources/Desktop/WimpUtils/Makefile
++++ b/castle/RiscOS/Sources/Desktop/WimpUtils/Makefile
+@@ -35,4 +35,4 @@ RESOURCES = no
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/ADFS/ADFS/Makefile b/castle/RiscOS/Sources/FileSys/ADFS/ADFS/Makefile
+index bd64e45..592b2a6 100644
+--- a/castle/RiscOS/Sources/FileSys/ADFS/ADFS/Makefile
++++ b/castle/RiscOS/Sources/FileSys/ADFS/ADFS/Makefile
+@@ -62,4 +62,4 @@ clean::
+         ${RM} hdr.ADFSErr
+         @@echo ${COMPONENT}: cleaned 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/ADFS/ADFSFiler/Makefile b/castle/RiscOS/Sources/FileSys/ADFS/ADFSFiler/Makefile
+index 17cd5ed..2805d08 100644
+--- a/castle/RiscOS/Sources/FileSys/ADFS/ADFSFiler/Makefile
++++ b/castle/RiscOS/Sources/FileSys/ADFS/ADFSFiler/Makefile
+@@ -95,4 +95,4 @@ o.${MACHINE}._Messages_.SDFSFiler:
+         IfThere LocalRes:CmdHelpSD Then ${TOKENCHECK} LocalRes:CmdHelpSD
+         IfThere LocalRes:CmdHelpSD Then ${CAT} LocalRes:CmdHelpSD { >> $@ }
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/CDFS/CDFS/Makefile b/castle/RiscOS/Sources/FileSys/CDFS/CDFS/Makefile
+index bef53ac..676ec22 100644
+--- a/castle/RiscOS/Sources/FileSys/CDFS/CDFS/Makefile
++++ b/castle/RiscOS/Sources/FileSys/CDFS/CDFS/Makefile
+@@ -36,4 +36,4 @@ ROM_SOURCE = Main.s
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/CDFS/CDFSFiler/Makefile b/castle/RiscOS/Sources/FileSys/CDFS/CDFSFiler/Makefile
+index 9acac24..ca9643f 100644
+--- a/castle/RiscOS/Sources/FileSys/CDFS/CDFSFiler/Makefile
++++ b/castle/RiscOS/Sources/FileSys/CDFS/CDFSFiler/Makefile
+@@ -44,4 +44,4 @@ resources-special:
+         ${CP} LocalRes:Templates ${RESFSDIR}.Templates ${CPFLAGS}
+         @@echo ${COMPONENT}: resource files copied
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/FSLock/Makefile b/castle/RiscOS/Sources/FileSys/FSLock/Makefile
+index 4aa4a3e..f87c0ae 100644
+--- a/castle/RiscOS/Sources/FileSys/FSLock/Makefile
++++ b/castle/RiscOS/Sources/FileSys/FSLock/Makefile
+@@ -78,4 +78,4 @@ ${TARGET}: ${SOURCE}
+ ${EXP_HDR}.${COMPONENT}: hdr.${COMPONENT}
+         ${CP} hdr.${COMPONENT} $@ ${CPFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/FileCore/Makefile b/castle/RiscOS/Sources/FileSys/FileCore/Makefile
+index 665d24b..39b3ad1 100644
+--- a/castle/RiscOS/Sources/FileSys/FileCore/Makefile
++++ b/castle/RiscOS/Sources/FileSys/FileCore/Makefile
+@@ -54,4 +54,4 @@ clean::
+ 	@IfThere h Then ${ECHO} ${WIPE} h ${WFLAGS}
+ 	@IfThere h Then ${WIPE} h ${WFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/FileCore/Test/Tester/Makefile b/castle/RiscOS/Sources/FileSys/FileCore/Test/Tester/Makefile
+index fda8437..306f755 100644
+--- a/castle/RiscOS/Sources/FileSys/FileCore/Test/Tester/Makefile
++++ b/castle/RiscOS/Sources/FileSys/FileCore/Test/Tester/Makefile
+@@ -23,4 +23,4 @@ OBJS      = Args BGet BPut File Find FSControl GBPB logger mymalloc Random BigFi
+ 
+ include CApp
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/FileSwitch/Makefile b/castle/RiscOS/Sources/FileSys/FileSwitch/Makefile
+index 2a87070..df71cc7 100644
+--- a/castle/RiscOS/Sources/FileSys/FileSwitch/Makefile
++++ b/castle/RiscOS/Sources/FileSys/FileSwitch/Makefile
+@@ -40,4 +40,4 @@ HELPSRC     = HelpSrc
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/ImageFS/DOSFS/Makefile b/castle/RiscOS/Sources/FileSys/ImageFS/DOSFS/Makefile
+index 95573d1..6f30f08 100644
+--- a/castle/RiscOS/Sources/FileSys/ImageFS/DOSFS/Makefile
++++ b/castle/RiscOS/Sources/FileSys/ImageFS/DOSFS/Makefile
+@@ -39,4 +39,4 @@ ASFLAGS     += -pd "PCMCIATRUE SETL {${PCMCIA}}"
+ CFLAGS      += -DPCMCIA${PCMCIA}
+ CDFLAGS     += -DDEBUGLIB
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/NetFS/NetFS/Makefile b/castle/RiscOS/Sources/FileSys/NetFS/NetFS/Makefile
+index 345233a..3f6605b 100644
+--- a/castle/RiscOS/Sources/FileSys/NetFS/NetFS/Makefile
++++ b/castle/RiscOS/Sources/FileSys/NetFS/NetFS/Makefile
+@@ -37,4 +37,4 @@ HELPSRC    = HelpTexts
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/NetFS/NetFiler/Makefile b/castle/RiscOS/Sources/FileSys/NetFS/NetFiler/Makefile
+index 553bdef..f8306cf 100644
+--- a/castle/RiscOS/Sources/FileSys/NetFS/NetFiler/Makefile
++++ b/castle/RiscOS/Sources/FileSys/NetFS/NetFiler/Makefile
+@@ -31,4 +31,4 @@ RESOURCEEXTRA = resources_templates
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/NetPrint/Makefile b/castle/RiscOS/Sources/FileSys/NetPrint/Makefile
+index 504e0b3..ccf625b 100644
+--- a/castle/RiscOS/Sources/FileSys/NetPrint/Makefile
++++ b/castle/RiscOS/Sources/FileSys/NetPrint/Makefile
+@@ -33,4 +33,4 @@ HELPSRC    = HelpTexts
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/PCCardFS/PCCardFS/Makefile b/castle/RiscOS/Sources/FileSys/PCCardFS/PCCardFS/Makefile
+index e807b39..a0767b7 100644
+--- a/castle/RiscOS/Sources/FileSys/PCCardFS/PCCardFS/Makefile
++++ b/castle/RiscOS/Sources/FileSys/PCCardFS/PCCardFS/Makefile
+@@ -126,4 +126,4 @@ ${RELOC_MOD}: ${OBJS} ${CLIB}
+ ${EXP_HDR}.PCCardFS: hdr.PCCardFS
+         ${CP} hdr.PCCardFS $@ ${CPFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/PipeFS/Makefile b/castle/RiscOS/Sources/FileSys/PipeFS/Makefile
+index 65c6d38..e2feac1 100644
+--- a/castle/RiscOS/Sources/FileSys/PipeFS/Makefile
++++ b/castle/RiscOS/Sources/FileSys/PipeFS/Makefile
+@@ -30,4 +30,4 @@ COMPONENT = PipeFS
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/RAMFS/RAMFS/Makefile b/castle/RiscOS/Sources/FileSys/RAMFS/RAMFS/Makefile
+index f6298c1..99bee23 100644
+--- a/castle/RiscOS/Sources/FileSys/RAMFS/RAMFS/Makefile
++++ b/castle/RiscOS/Sources/FileSys/RAMFS/RAMFS/Makefile
+@@ -50,4 +50,4 @@ clean::
+         ${RM} hdr.RAMFSErr
+         @@echo ${COMPONENT}: cleaned 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/RAMFS/RAMFSFiler/Makefile b/castle/RiscOS/Sources/FileSys/RAMFS/RAMFSFiler/Makefile
+index a562b41..33fece4 100644
+--- a/castle/RiscOS/Sources/FileSys/RAMFS/RAMFSFiler/Makefile
++++ b/castle/RiscOS/Sources/FileSys/RAMFS/RAMFSFiler/Makefile
+@@ -29,4 +29,4 @@ COMPONENT = RAMFSFiler
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/ResourceFS/ResFiler/Makefile b/castle/RiscOS/Sources/FileSys/ResourceFS/ResFiler/Makefile
+index 2aed7a4..21899cb 100644
+--- a/castle/RiscOS/Sources/FileSys/ResourceFS/ResFiler/Makefile
++++ b/castle/RiscOS/Sources/FileSys/ResourceFS/ResFiler/Makefile
+@@ -30,4 +30,4 @@ TARGET    = ResFiler
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/ResourceFS/ResourceFS/Makefile b/castle/RiscOS/Sources/FileSys/ResourceFS/ResourceFS/Makefile
+index edd6125..c2176a2 100644
+--- a/castle/RiscOS/Sources/FileSys/ResourceFS/ResourceFS/Makefile
++++ b/castle/RiscOS/Sources/FileSys/ResourceFS/ResourceFS/Makefile
+@@ -34,4 +34,4 @@ HEADER1=ResourceFS
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/FileSys/SCSIFS/SCSIFS/Makefile b/castle/RiscOS/Sources/FileSys/SCSIFS/SCSIFS/Makefile
+index 083b410..6c5d368 100644
+--- a/castle/RiscOS/Sources/FileSys/SCSIFS/SCSIFS/Makefile
++++ b/castle/RiscOS/Sources/FileSys/SCSIFS/SCSIFS/Makefile
+@@ -59,4 +59,4 @@ clean::
+         ${WIPE} o ${WFLAGS}
+         ${RM} hdr.SCSIFSErr
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HAL/IOMD/Makefile b/castle/RiscOS/Sources/HAL/IOMD/Makefile
+index c8c4d96..b603e42 100644
+--- a/castle/RiscOS/Sources/HAL/IOMD/Makefile
++++ b/castle/RiscOS/Sources/HAL/IOMD/Makefile
+@@ -63,4 +63,4 @@ ${AIFDBG}: ${ROM_OBJS_} ${ROM_LIBS}
+ ${GPADBG}: ${AIFDBG}
+         ToGPA -s ${AIFDBG} ${GPADBG}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Buffers/Makefile b/castle/RiscOS/Sources/HWSupport/Buffers/Makefile
+index b213b3f..964f336 100644
+--- a/castle/RiscOS/Sources/HWSupport/Buffers/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Buffers/Makefile
+@@ -32,4 +32,4 @@ HEADER1   = Buffer
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/CD/ATAPI/Makefile b/castle/RiscOS/Sources/HWSupport/CD/ATAPI/Makefile
+index 938743a..a29e8c1 100644
+--- a/castle/RiscOS/Sources/HWSupport/CD/ATAPI/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/CD/ATAPI/Makefile
+@@ -35,4 +35,4 @@ ROM_SOURCE = Main.s
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/CD/CDFSDriver/Makefile b/castle/RiscOS/Sources/HWSupport/CD/CDFSDriver/Makefile
+index d71b936..20086e8 100644
+--- a/castle/RiscOS/Sources/HWSupport/CD/CDFSDriver/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/CD/CDFSDriver/Makefile
+@@ -38,4 +38,4 @@ ROM_SOURCE = Main.s
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/DMA/Makefile b/castle/RiscOS/Sources/HWSupport/DMA/Makefile
+index db4e3b5..c82b9ce 100644
+--- a/castle/RiscOS/Sources/HWSupport/DMA/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/DMA/Makefile
+@@ -37,4 +37,4 @@ ROM_SOURCE = GetAll.s
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/DeviceFS/Makefile b/castle/RiscOS/Sources/HWSupport/DeviceFS/Makefile
+index 6ef0771..03b371f 100644
+--- a/castle/RiscOS/Sources/HWSupport/DeviceFS/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/DeviceFS/Makefile
+@@ -35,4 +35,4 @@ EXPORTS      = ${C_EXP_HDR}.${ASMCHEADER1}
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/IIC/Makefile b/castle/RiscOS/Sources/HWSupport/IIC/Makefile
+index 9a1b464..d13b6bf 100644
+--- a/castle/RiscOS/Sources/HWSupport/IIC/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/IIC/Makefile
+@@ -34,4 +34,4 @@ HEADER1       = IIC
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Joystick/Makefile b/castle/RiscOS/Sources/HWSupport/Joystick/Makefile
+index 43d247f..319c281 100644
+--- a/castle/RiscOS/Sources/HWSupport/Joystick/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Joystick/Makefile
+@@ -32,4 +32,4 @@ ROM_SOURCE = Front.s
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Mouse/Makefile b/castle/RiscOS/Sources/HWSupport/Mouse/Makefile
+index e33a9ea..82e4238 100644
+--- a/castle/RiscOS/Sources/HWSupport/Mouse/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Mouse/Makefile
+@@ -31,4 +31,4 @@ ROM_SOURCE = GetAll.s
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/NVRAM/Makefile b/castle/RiscOS/Sources/HWSupport/NVRAM/Makefile
+index 98755df..8b91657 100644
+--- a/castle/RiscOS/Sources/HWSupport/NVRAM/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/NVRAM/Makefile
+@@ -135,4 +135,4 @@ ${EXP_H}.${COMPONENT}: export.h.${COMPONENT}
+ ${EXP_HDR}.${COMPONENT}: export.hdr.${COMPONENT}
+         ${CP} export.hdr.${COMPONENT} $@ ${CPFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/NVRAM/Utils/Lazarus/MakeImage/Makefile b/castle/RiscOS/Sources/HWSupport/NVRAM/Utils/Lazarus/MakeImage/Makefile
+index b36d547..b9911d1 100644
+--- a/castle/RiscOS/Sources/HWSupport/NVRAM/Utils/Lazarus/MakeImage/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/NVRAM/Utils/Lazarus/MakeImage/Makefile
+@@ -108,4 +108,4 @@ ${TARGET}: ${OBJS} ${CLIB}
+         ${LD} -o $@ -aif ${OBJS} ${CLIB}
+ 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/PCI/Makefile b/castle/RiscOS/Sources/HWSupport/PCI/Makefile
+index 82e91cb..46dd0b4 100644
+--- a/castle/RiscOS/Sources/HWSupport/PCI/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/PCI/Makefile
+@@ -49,4 +49,4 @@ clean::
+         ${WIPE} rm ${WFLAGS}
+         @@echo ${COMPONENT}: cleaned 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/PS2Driver/Makefile b/castle/RiscOS/Sources/HWSupport/PS2Driver/Makefile
+index 646b684..a8e455f 100644
+--- a/castle/RiscOS/Sources/HWSupport/PS2Driver/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/PS2Driver/Makefile
+@@ -35,4 +35,4 @@ SA_FLAGS   =
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Parallel/Makefile b/castle/RiscOS/Sources/HWSupport/Parallel/Makefile
+index e7d378b..60540c4 100644
+--- a/castle/RiscOS/Sources/HWSupport/Parallel/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Parallel/Makefile
+@@ -32,4 +32,4 @@ HEADER1   = Parallel
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Podule/Makefile b/castle/RiscOS/Sources/HWSupport/Podule/Makefile
+index 1cf5177..f9605af 100644
+--- a/castle/RiscOS/Sources/HWSupport/Podule/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Podule/Makefile
+@@ -52,4 +52,4 @@ ASFLAGS     = ${OPTIONS}
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/PortMan/Makefile b/castle/RiscOS/Sources/HWSupport/PortMan/Makefile
+index 67a5853..da96b2d 100644
+--- a/castle/RiscOS/Sources/HWSupport/PortMan/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/PortMan/Makefile
+@@ -193,4 +193,4 @@ sao.module: h.saheader
+ o<Machine>.resfiles: Resources.<Machine>.Tags
+ o<Machine>.resfiles: LocalRes:Messages
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Portable/Makefile b/castle/RiscOS/Sources/HWSupport/Portable/Makefile
+index 4e3ea67..f32a571 100644
+--- a/castle/RiscOS/Sources/HWSupport/Portable/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Portable/Makefile
+@@ -39,4 +39,4 @@ resources_lcd:
+         ${CP} LocalRes:SelectLCD ${RESFSDIR}.SelectLCD ${CPFLAGS}
+         @echo ${COMPONENT}: extra resource files copied to Messages module
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/RTCAdjust/Makefile b/castle/RiscOS/Sources/HWSupport/RTCAdjust/Makefile
+index 14455aa..c90fe29 100644
+--- a/castle/RiscOS/Sources/HWSupport/RTCAdjust/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/RTCAdjust/Makefile
+@@ -34,4 +34,4 @@ ROM_SOURCE = RTC.s
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/SCSI/SCSIDriver/Makefile b/castle/RiscOS/Sources/HWSupport/SCSI/SCSIDriver/Makefile
+index 2b2d767..351dd1a 100644
+--- a/castle/RiscOS/Sources/HWSupport/SCSI/SCSIDriver/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/SCSI/SCSIDriver/Makefile
+@@ -33,4 +33,4 @@ endif
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/SerMouse/Makefile b/castle/RiscOS/Sources/HWSupport/SerMouse/Makefile
+index b537df5..28e8232 100644
+--- a/castle/RiscOS/Sources/HWSupport/SerMouse/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/SerMouse/Makefile
+@@ -32,4 +32,4 @@ ROM_SOURCE = GetAll.s
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Serial/Makefile b/castle/RiscOS/Sources/HWSupport/Serial/Makefile
+index 55306df..764c708 100644
+--- a/castle/RiscOS/Sources/HWSupport/Serial/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Serial/Makefile
+@@ -33,4 +33,4 @@ HEADER2   = RS423
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/SerialSpt/Makefile b/castle/RiscOS/Sources/HWSupport/SerialSpt/Makefile
+index 62d5a0e..dc42f7d 100644
+--- a/castle/RiscOS/Sources/HWSupport/SerialSpt/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/SerialSpt/Makefile
+@@ -33,4 +33,4 @@ HEADER1   = SerialOp
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Sound/Sound0/Makefile b/castle/RiscOS/Sources/HWSupport/Sound/Sound0/Makefile
+index ce58c55..2186f02 100644
+--- a/castle/RiscOS/Sources/HWSupport/Sound/Sound0/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Sound/Sound0/Makefile
+@@ -35,4 +35,4 @@ RESFSDIR  = ${RESDIR}.${COMPONENT}
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Sound/Sound1/Makefile b/castle/RiscOS/Sources/HWSupport/Sound/Sound1/Makefile
+index 5b6f200..0ce4b02 100644
+--- a/castle/RiscOS/Sources/HWSupport/Sound/Sound1/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Sound/Sound1/Makefile
+@@ -34,4 +34,4 @@ RESFSDIR  = ${RESDIR}.SoundChann
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Sound/Sound2/Makefile b/castle/RiscOS/Sources/HWSupport/Sound/Sound2/Makefile
+index 59cf643..bcf00c3 100644
+--- a/castle/RiscOS/Sources/HWSupport/Sound/Sound2/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Sound/Sound2/Makefile
+@@ -34,4 +34,4 @@ RESFSDIR  = ${RESDIR}.SoundSched
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Sound/Voices/Percussion/Makefile b/castle/RiscOS/Sources/HWSupport/Sound/Voices/Percussion/Makefile
+index 0a1503c..7e29e34 100644
+--- a/castle/RiscOS/Sources/HWSupport/Sound/Voices/Percussion/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Sound/Voices/Percussion/Makefile
+@@ -30,4 +30,4 @@ COMPONENT = Percussion
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Sound/Voices/StringLib/Makefile b/castle/RiscOS/Sources/HWSupport/Sound/Voices/StringLib/Makefile
+index 31a7f2a..f936723 100644
+--- a/castle/RiscOS/Sources/HWSupport/Sound/Voices/StringLib/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Sound/Voices/StringLib/Makefile
+@@ -33,4 +33,4 @@ COMPONENT = StringLib
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/Sound/Voices/WaveSynth/Makefile b/castle/RiscOS/Sources/HWSupport/Sound/Voices/WaveSynth/Makefile
+index ad565cc..39e90b3 100644
+--- a/castle/RiscOS/Sources/HWSupport/Sound/Voices/WaveSynth/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/Sound/Voices/WaveSynth/Makefile
+@@ -32,4 +32,4 @@ COMPONENT = WaveSynth
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/SystemDevs/Makefile b/castle/RiscOS/Sources/HWSupport/SystemDevs/Makefile
+index ff204bb..a47724b 100644
+--- a/castle/RiscOS/Sources/HWSupport/SystemDevs/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/SystemDevs/Makefile
+@@ -33,4 +33,4 @@ TARGET    = SystemDevs
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/HWSupport/UnSqzAIF/Makefile b/castle/RiscOS/Sources/HWSupport/UnSqzAIF/Makefile
+index 25bfa2f..efbedfe 100644
+--- a/castle/RiscOS/Sources/HWSupport/UnSqzAIF/Makefile
++++ b/castle/RiscOS/Sources/HWSupport/UnSqzAIF/Makefile
+@@ -25,4 +25,4 @@ RESOURCES  = no
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Internat/IntKey/Makefile b/castle/RiscOS/Sources/Internat/IntKey/Makefile
+index f58555e..0c613b4 100644
+--- a/castle/RiscOS/Sources/Internat/IntKey/Makefile
++++ b/castle/RiscOS/Sources/Internat/IntKey/Makefile
+@@ -78,4 +78,4 @@ keyconvert: keyconvert.c unicdata.c
+ 
+ install: ${LAYOUTS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Internat/Inter/Makefile b/castle/RiscOS/Sources/Internat/Inter/Makefile
+index 7f4db5a..a5237c3 100644
+--- a/castle/RiscOS/Sources/Internat/Inter/Makefile
++++ b/castle/RiscOS/Sources/Internat/Inter/Makefile
+@@ -38,4 +38,4 @@ TOKHELPSRC  = ${TOKENSOURCE}
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Internat/Messages/Makefile b/castle/RiscOS/Sources/Internat/Messages/Makefile
+index 77ad3e1..c62eabe 100644
+--- a/castle/RiscOS/Sources/Internat/Messages/Makefile
++++ b/castle/RiscOS/Sources/Internat/Messages/Makefile
+@@ -221,4 +221,4 @@ ${DIRS}:
+         ${MKDIR} rm.${BUILD}.<Build$LocaleListNumeric>
+         ${TOUCH} ${DIRS}
+         
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Internat/Messages/Utils/Makefile b/castle/RiscOS/Sources/Internat/Messages/Utils/Makefile
+index d8ac2a8..f63cfc8 100644
+--- a/castle/RiscOS/Sources/Internat/Messages/Utils/Makefile
++++ b/castle/RiscOS/Sources/Internat/Messages/Utils/Makefile
+@@ -79,4 +79,4 @@ ResCommon: o.ResCommon ${DIRS}
+ LocaleChk: o.LocaleChk ${DIRS}
+         ${LD} ${LDFLAGS} -o $@ o.LocaleChk ${CLIB}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Internat/MsgTrans/Makefile b/castle/RiscOS/Sources/Internat/MsgTrans/Makefile
+index d9bbf11..c0cd118 100644
+--- a/castle/RiscOS/Sources/Internat/MsgTrans/Makefile
++++ b/castle/RiscOS/Sources/Internat/MsgTrans/Makefile
+@@ -38,4 +38,4 @@ SA_DEBUG  =\
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Internat/Territory/Manager/Makefile b/castle/RiscOS/Sources/Internat/Territory/Manager/Makefile
+index 4add5fa..b022569 100644
+--- a/castle/RiscOS/Sources/Internat/Territory/Manager/Makefile
++++ b/castle/RiscOS/Sources/Internat/Territory/Manager/Makefile
+@@ -46,4 +46,4 @@ clean ::
+         ${RM} ${SPRITEFILE}
+ 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Internat/Territory/Module/Makefile b/castle/RiscOS/Sources/Internat/Territory/Module/Makefile
+index bab05dc..58c31cd 100644
+--- a/castle/RiscOS/Sources/Internat/Territory/Module/Makefile
++++ b/castle/RiscOS/Sources/Internat/Territory/Module/Makefile
+@@ -62,4 +62,4 @@ bbe-local: bbe-generic-resources-get-alias
+   BBE_Export_File VersionNum
+ 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Kernel/Dev/HeapTest/Makefile b/castle/RiscOS/Sources/Kernel/Dev/HeapTest/Makefile
+index 733960e..ea0030f 100644
+--- a/castle/RiscOS/Sources/Kernel/Dev/HeapTest/Makefile
++++ b/castle/RiscOS/Sources/Kernel/Dev/HeapTest/Makefile
+@@ -20,4 +20,4 @@ OBJS = asm testbed
+ 
+ include CApp
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Kernel/Dev/IICTest/Makefile b/castle/RiscOS/Sources/Kernel/Dev/IICTest/Makefile
+index 546588a..7d0d947 100644
+--- a/castle/RiscOS/Sources/Kernel/Dev/IICTest/Makefile
++++ b/castle/RiscOS/Sources/Kernel/Dev/IICTest/Makefile
+@@ -70,25 +70,4 @@ ${TARGET}: ${SOURCE}
+ ${EXP_HDR}.${COMPONENT}: hdr.${COMPONENT}
+ #       ${CP} hdr.${COMPONENT} $@ ${CPFLAGS}
+ 
+-# Dynamic dependencies:
+-rm.IICTest: Hdr:ListOpts
+-rm.IICTest: Hdr:Macros
+-rm.IICTest: Hdr:System
+-rm.IICTest: Hdr:SWIs
+-rm.IICTest: Hdr:CPU.Generic26
+-rm.IICTest: Hdr:IO.GenericIO
+-rm.IICTest: Hdr:RISCOS
+-rm.IICTest: Hdr:Machine.<Machine>
+-rm.IICTest: Hdr:Machine.Machine
+-rm.IICTest: Hdr:ImageSize.<ImageSize>
+-rm.IICTest: Hdr:CPU.ARM600
+-rm.IICTest: Hdr:IO.IOMDL
+-rm.IICTest: Hdr:IO.IOMD
+-rm.IICTest: Hdr:MEMM.ARM600
+-rm.IICTest: Hdr:VIDC.VIDC20
+-rm.IICTest: Hdr:ModHand
+-rm.IICTest: Hdr:Proc
+-rm.IICTest: Hdr:CMOS
+-rm.IICTest: ^.^.hdr.PublicWS
+-rm.IICTest: ^.^.hdr.KernelWS
+-rm.IICTest: ^.^.s.PMF.i2cutils
++include Depends
+diff --git a/castle/RiscOS/Sources/Kernel/Makefile b/castle/RiscOS/Sources/Kernel/Makefile
+index 09b0748..1a6be81 100644
+--- a/castle/RiscOS/Sources/Kernel/Makefile
++++ b/castle/RiscOS/Sources/Kernel/Makefile
+@@ -241,4 +241,4 @@ bbe-kernel: bbe-generic-resources-get-alias
+         BBE_Export_Dir Resources.${LOCALE}.${USERIF}
+         BBE_Export_File VersionNum
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Kernel/hdr/ExportVals/Makefile b/castle/RiscOS/Sources/Kernel/hdr/ExportVals/Makefile
+index f8f5357..88e27a3 100644
+--- a/castle/RiscOS/Sources/Kernel/hdr/ExportVals/Makefile
++++ b/castle/RiscOS/Sources/Kernel/hdr/ExportVals/Makefile
+@@ -38,4 +38,4 @@ all:
+         settype values text
+         @echo ok
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/AsmUtils/Makefile b/castle/RiscOS/Sources/Lib/AsmUtils/Makefile
+index 71d8d5c..874db1e 100644
+--- a/castle/RiscOS/Sources/Lib/AsmUtils/Makefile
++++ b/castle/RiscOS/Sources/Lib/AsmUtils/Makefile
+@@ -164,4 +164,4 @@ ${TARGET}: ${OBJS} ${LOCALDIRS}
+ ${TARGETZ}: ${OBJSZ} ${LOCALDIRS}
+ 	${LB} ${LBFLAGS} -o $@ ${OBJSZ}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/Configure/Makefile b/castle/RiscOS/Sources/Lib/Configure/Makefile
+index 0bbde05..167a5ce 100644
+--- a/castle/RiscOS/Sources/Lib/Configure/Makefile
++++ b/castle/RiscOS/Sources/Lib/Configure/Makefile
+@@ -26,4 +26,4 @@ include CLibrary
+ 
+ CINCLUDES += -ITbox:,C:
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/DebugLib/Makefile b/castle/RiscOS/Sources/Lib/DebugLib/Makefile
+index 870441a..1bc92de 100644
+--- a/castle/RiscOS/Sources/Lib/DebugLib/Makefile
++++ b/castle/RiscOS/Sources/Lib/DebugLib/Makefile
+@@ -320,4 +320,4 @@ $(EXP_HDR).$(COMPONENT): hdr.$(COMPONENT)
+ 
+ 
+ # ------------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/DebugLib/Tests/CLI_App/Makefile b/castle/RiscOS/Sources/Lib/DebugLib/Tests/CLI_App/Makefile
+index 9afa38e..ef959c0 100644
+--- a/castle/RiscOS/Sources/Lib/DebugLib/Tests/CLI_App/Makefile
++++ b/castle/RiscOS/Sources/Lib/DebugLib/Tests/CLI_App/Makefile
+@@ -89,4 +89,4 @@ ${TARGET}: ${OBJS} ${LIBS} ${DIRS}
+ ${TARGETMC}: ${OBJSMC} ${LIBSMC} ${DIRS}
+ 	${LD} ${LDFLAGS} -o $@ ${OBJSMC} ${LIBSMC}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/DebugLib/Tests/GUI_Test/Makefile b/castle/RiscOS/Sources/Lib/DebugLib/Tests/GUI_Test/Makefile
+index 12f9ccc..2afdcb6 100644
+--- a/castle/RiscOS/Sources/Lib/DebugLib/Tests/GUI_Test/Makefile
++++ b/castle/RiscOS/Sources/Lib/DebugLib/Tests/GUI_Test/Makefile
+@@ -338,4 +338,4 @@ rm.!GUID: odz.ModuleWrap ${OBJSDZ} ${LIBSM} ${DIRS}
+ 
+ 
+ # -----------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/DebugLib/Tests/TestMod/Makefile b/castle/RiscOS/Sources/Lib/DebugLib/Tests/TestMod/Makefile
+index d0f2e81..c24b003 100644
+--- a/castle/RiscOS/Sources/Lib/DebugLib/Tests/TestMod/Makefile
++++ b/castle/RiscOS/Sources/Lib/DebugLib/Tests/TestMod/Makefile
+@@ -201,4 +201,4 @@ rom_link:
+         ${CP} linked.${COMPONENT} ${LINKDIR}.${COMPONENT} ${CPFLAGS}
+         @echo ${COMPONENT}: rom_link complete
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/ModMalloc/Makefile b/castle/RiscOS/Sources/Lib/ModMalloc/Makefile
+index f50689e..b479824 100644
+--- a/castle/RiscOS/Sources/Lib/ModMalloc/Makefile
++++ b/castle/RiscOS/Sources/Lib/ModMalloc/Makefile
+@@ -84,4 +84,4 @@ ram:
+ 
+ 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/PDebug/Makefile b/castle/RiscOS/Sources/Lib/PDebug/Makefile
+index 1873429..a12a470 100644
+--- a/castle/RiscOS/Sources/Lib/PDebug/Makefile
++++ b/castle/RiscOS/Sources/Lib/PDebug/Makefile
+@@ -172,4 +172,4 @@ ${EXP_HDR}.${COMPONENT}: hdr.${COMPONENT}
+ 
+ 
+ # ------------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/PDebug/Utils/PDebugM/Makefile b/castle/RiscOS/Sources/Lib/PDebug/Utils/PDebugM/Makefile
+index 9faf21a..b7a1838 100644
+--- a/castle/RiscOS/Sources/Lib/PDebug/Utils/PDebugM/Makefile
++++ b/castle/RiscOS/Sources/Lib/PDebug/Utils/PDebugM/Makefile
+@@ -199,4 +199,4 @@ rom_link:
+         ${CP} linked.${COMPONENT} ${LINKDIR}.${COMPONENT} ${CPFLAGS}
+         @echo ${COMPONENT}: rom_link complete
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/PDebug/Utils/SimpleRec/Makefile b/castle/RiscOS/Sources/Lib/PDebug/Utils/SimpleRec/Makefile
+index aa62297..2683f15 100644
+--- a/castle/RiscOS/Sources/Lib/PDebug/Utils/SimpleRec/Makefile
++++ b/castle/RiscOS/Sources/Lib/PDebug/Utils/SimpleRec/Makefile
+@@ -63,4 +63,4 @@ o.dirs:
+ ${TARGET}: ${OBJS} ${LIBS} o.dirs
+ 	${LD} ${LDFLAGS} -o $@ ${OBJS} ${LIBS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/PDebug/Utils/SimpleSend/Makefile b/castle/RiscOS/Sources/Lib/PDebug/Utils/SimpleSend/Makefile
+index dbfdab1..f085a7d 100644
+--- a/castle/RiscOS/Sources/Lib/PDebug/Utils/SimpleSend/Makefile
++++ b/castle/RiscOS/Sources/Lib/PDebug/Utils/SimpleSend/Makefile
+@@ -63,4 +63,4 @@ o.dirs:
+ ${TARGET}: ${OBJS} ${LIBS} o.dirs
+ 	${LD} ${LDFLAGS} -o $@ ${OBJS} ${LIBS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/PlainArgv/Makefile b/castle/RiscOS/Sources/Lib/PlainArgv/Makefile
+index a504fda..c6bad18 100644
+--- a/castle/RiscOS/Sources/Lib/PlainArgv/Makefile
++++ b/castle/RiscOS/Sources/Lib/PlainArgv/Makefile
+@@ -85,4 +85,4 @@ ram:
+ 
+ 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/RISC_OSLib/Makefile b/castle/RiscOS/Sources/Lib/RISC_OSLib/Makefile
+index 152e7e3..64067e2 100644
+--- a/castle/RiscOS/Sources/Lib/RISC_OSLib/Makefile
++++ b/castle/RiscOS/Sources/Lib/RISC_OSLib/Makefile
+@@ -880,4 +880,4 @@ m_o_rl.trace: rlib.c.trace
+ rm_o_rl.trace: rlib.c.trace
+    ${CC} ${CFLAGS} -ffah ${DFLAGS} -zm1 ${CSFLAGS} ${STK_EXTN} ${OPTIONS} -DTRACE -o rm_o_rl.trace rlib.c.trace
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/RISC_OSLib/test/!TboxCalc/Makefile b/castle/RiscOS/Sources/Lib/RISC_OSLib/test/!TboxCalc/Makefile
+index 97072af..9f5ae2b 100644
+--- a/castle/RiscOS/Sources/Lib/RISC_OSLib/test/!TboxCalc/Makefile
++++ b/castle/RiscOS/Sources/Lib/RISC_OSLib/test/!TboxCalc/Makefile
+@@ -41,4 +41,4 @@ Squeezeflags = -f $@
+ @.o.foo:      @.s.foo
+            objasm $(asflags) -o @.o.foo @.s.foo           
+            
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/Unicode/Makefile b/castle/RiscOS/Sources/Lib/Unicode/Makefile
+index 2cc0021..f872704 100644
+--- a/castle/RiscOS/Sources/Lib/Unicode/Makefile
++++ b/castle/RiscOS/Sources/Lib/Unicode/Makefile
+@@ -255,4 +255,4 @@ ${TARGETZ}: ${OBJSZ} unictype.c local_dirs
+ ${TARGETD}: ${OBJSD} unictype.c local_dirs
+ 	${LB} ${LBFLAGS} -o ${COMPONENTD} ${OBJSD}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/callx/Makefile b/castle/RiscOS/Sources/Lib/callx/Makefile
+index 81efe49..fd435b9 100644
+--- a/castle/RiscOS/Sources/Lib/callx/Makefile
++++ b/castle/RiscOS/Sources/Lib/callx/Makefile
+@@ -124,4 +124,4 @@ ${EXP_HDR}.${COMPONENT}: hdr.${COMPONENT}
+ 
+ 
+ # ------------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Lib/remotedb/Makefile b/castle/RiscOS/Sources/Lib/remotedb/Makefile
+index c696beb..027c436 100644
+--- a/castle/RiscOS/Sources/Lib/remotedb/Makefile
++++ b/castle/RiscOS/Sources/Lib/remotedb/Makefile
+@@ -137,4 +137,4 @@ export_libs: ${COMPONENT} ${COMPONENTZM} ${LCOMPONENT} ${LCOMPONENTZM} o.dirs
+ 
+ 
+ #
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Networking/AUN/AUNMsgs/Makefile b/castle/RiscOS/Sources/Networking/AUN/AUNMsgs/Makefile
+index 2c51e75..2652a81 100644
+--- a/castle/RiscOS/Sources/Networking/AUN/AUNMsgs/Makefile
++++ b/castle/RiscOS/Sources/Networking/AUN/AUNMsgs/Makefile
+@@ -70,4 +70,4 @@ BBETYPE = aunmsgs
+ bbe-aunmsgs: bbe-generic-resources-get-alias
+         BBE_Export_File VersionNum
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Networking/AUN/Access/Freeway/Makefile b/castle/RiscOS/Sources/Networking/AUN/Access/Freeway/Makefile
+index 244cc83..e589ca6 100644
+--- a/castle/RiscOS/Sources/Networking/AUN/Access/Freeway/Makefile
++++ b/castle/RiscOS/Sources/Networking/AUN/Access/Freeway/Makefile
+@@ -40,4 +40,4 @@ resources:
+         @echo ${COMPONENT}: Resources in AUNMsgs
+ 
+ #
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Networking/AUN/BootNet/Makefile b/castle/RiscOS/Sources/Networking/AUN/BootNet/Makefile
+index 91b6158..0ae70e6 100644
+--- a/castle/RiscOS/Sources/Networking/AUN/BootNet/Makefile
++++ b/castle/RiscOS/Sources/Networking/AUN/BootNet/Makefile
+@@ -35,4 +35,4 @@ RESOURCES  = No
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Networking/AUN/Net/Makefile b/castle/RiscOS/Sources/Networking/AUN/Net/Makefile
+index 68fa008..96c2b79 100644
+--- a/castle/RiscOS/Sources/Networking/AUN/Net/Makefile
++++ b/castle/RiscOS/Sources/Networking/AUN/Net/Makefile
+@@ -54,4 +54,4 @@ io_e.o:
+ resources:
+         @echo ${COMPONENT}: resource files are in AUNMsgs
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Networking/AUN/Net/podule/Makefile b/castle/RiscOS/Sources/Networking/AUN/Net/podule/Makefile
+index 0f0d330..bf00899 100644
+--- a/castle/RiscOS/Sources/Networking/AUN/Net/podule/Makefile
++++ b/castle/RiscOS/Sources/Networking/AUN/Net/podule/Makefile
+@@ -88,167 +88,4 @@ rm.NetP: ${OBJS} cmhg.MNSHdr_p ${LCLIB}
+          ${LD} -o $@ -module -map o.mnshdr_p ${OBJS} ${CLIB} > map.linkmap_p
+ 
+ 
+-# Dynamic dependencies:
+-o.mns:	c.mns
+-o.mns:	C:h.kernel
+-o.mns:	C:h.swis
+-o.mns:	INetInc:sys.h.types
+-o.mns:	INetInc:sys.h.uio
+-o.mns:	INetInc:sys.h.socket
+-o.mns:	INetInc:sys.h.time
+-o.mns:	INetInc:sys.h.time
+-o.mns:	INetInc:sys.h.ioctl
+-o.mns:	INetInc:sys.h.ttychars
+-o.mns:	INetInc:sys.h.ttydev
+-o.mns:	INetInc:sys.h.dcistructs
+-o.mns:	INetInc:netinet.h.in
+-o.mns:	INetInc:net.h.if
+-o.mns:	INetInc:sys.h.mbuf
+-o.mns:	INetInc:net.h.if_arp
+-o.mns:	INetInc:sys.h.socket
+-o.mns:	INetInc:protocols.h.routed
+-o.mns:	h.netasm
+-o.mns:	h.module
+-o.mns:	h.mnscommon
+-o.mns:	h.configure
+-o.mns:	h.debug
+-o.mns:	h.inetfn
+-o.mns:	h.io
+-o.mns:	h.showrt
+-o.mns:	h.stubs
+-o.mns:	h.swicode
+-o.mns:	h.text
+-o.mns:	h.routecode
+-o.mns:	h.mns
+-o.mnscommon:	c.mnscommon
+-o.mnscommon:	C:h.kernel
+-o.mnscommon:	C:h.swis
+-o.mnscommon:	INetInc:sys.h.types
+-o.mnscommon:	INetInc:sys.h.socket
+-o.mnscommon:	INetInc:sys.h.ioctl
+-o.mnscommon:	INetInc:sys.h.ttychars
+-o.mnscommon:	INetInc:sys.h.ttydev
+-o.mnscommon:	INetInc:netinet.h.in
+-o.mnscommon:	INetInc:sys.h.dcistructs
+-o.mnscommon:	h.netasm
+-o.mnscommon:	h.module
+-o.mnscommon:	h.debug
+-o.mnscommon:	h.mns
+-o.mnscommon:	h.mnscommon
+-o.mnscommon:	h.text
+-o.io:	c.io
+-o.io:	INetInc:sys.h.types
+-o.io:	INetInc:sys.h.socket
+-o.io:	INetInc:netinet.h.in
+-o.io:	INetInc:netinet.h.in_systm
+-o.io:	INetInc:netinet.h.ip
+-o.io:	INetInc:netinet.h.in_systm
+-o.io:	INetInc:netinet.h.ip_var
+-o.io:	INetInc:netinet.h.udp
+-o.io:	INetInc:netinet.h.udp_var
+-o.io:	INetInc:sys.h.errno
+-o.io:	INetInc:sys.^.h.errno
+-o.io:	C:h.kernel
+-o.io:	INetInc:sys.h.mbuf
+-o.io:	C:h.kernel
+-o.io:	C:h.swis
+-o.io:	h.module
+-o.io:	h.io
+-o.io:	h.mns
+-o.io:	h.netasm
+-o.io:	h.stubs
+-o.swis:	c.swis
+-o.swis:	C:h.kernel
+-o.swis:	C:h.swis
+-o.swis:	INetInc:sys.h.types
+-o.swis:	h.module
+-o.swis:	h.debug
+-o.swis:	h.inetfn
+-o.swis:	h.mns
+-o.swis:	h.mnscommon
+-o.swis:	h.netasm
+-o.swis:	h.io
+-o.swis:	h.swicode
+-o.configure:	c.configure
+-o.configure:	C:h.kernel
+-o.configure:	C:h.swis
+-o.configure:	INetInc:sys.h.types
+-o.configure:	INetInc:sys.h.socket
+-o.configure:	INetInc:sys.h.ioctl
+-o.configure:	INetInc:sys.h.ttychars
+-o.configure:	INetInc:sys.h.ttydev
+-o.configure:	INetInc:sys.h.dcistructs
+-o.configure:	INetInc:net.h.if
+-o.configure:	INetInc:sys.h.mbuf
+-o.configure:	INetInc:net.h.if_arp
+-o.configure:	INetInc:sys.h.socket
+-o.configure:	h.configure
+-o.configure:	h.swicode
+-o.configure:	h.module
+-o.configure:	h.debug
+-o.netasm: s.netasm
+-o.netasm: Hdr:ListOpts
+-o.netasm: Hdr:Macros
+-o.netasm: Hdr:System
+-o.netasm: Hdr:SWIs
+-o.netasm: Hdr:CPU.Generic26
+-o.netasm: Hdr:IO.GenericIO
+-o.netasm: Hdr:RISCOS
+-o.netasm: Hdr:EnvNumbers
+-o.netasm: Hdr:FSNumbers
+-o.netasm: Hdr:NewErrors
+-o.netasm: Hdr:ModHand
+-o.netasm: Hdr:Econet
+-o.netasm: Hdr:MsgTrans
+-o.netasm: Hdr:Symbols
+-o.netasm: Hdr:CMOS
+-o.route:	c.route
+-o.route:	INetInc:sys.h.types
+-o.route:	INetInc:sys.h.socket
+-o.route:	INetInc:sys.h.ioctl
+-o.route:	INetInc:sys.h.ttychars
+-o.route:	INetInc:sys.h.ttydev
+-o.route:	INetInc:net.h.route
+-o.route:	INetInc:protocols.h.routed
+-o.route:	INetInc:netinet.h.in
+-o.route:	h.module
+-o.route:	h.routecode
+-o.route:	h.stubs
+-o.showrt:	c.showrt
+-o.showrt:	C:h.kernel
+-o.showrt:	INetInc:sys.h.types
+-o.showrt:	INetInc:sys.h.socket
+-o.showrt:	INetInc:sys.h.ioctl
+-o.showrt:	INetInc:sys.h.ttychars
+-o.showrt:	INetInc:sys.h.ttydev
+-o.showrt:	INetInc:sys.h.mbuf
+-o.showrt:	INetInc:net.h.route
+-o.showrt:	INetInc:netinet.h.in
+-o.showrt:	h.module
+-o.showrt:	h.mnscommon
+-o.showrt:	h.mns
+-o.showrt:	h.showrt
+-o.showrt:	h.stubs
+-o.text:	c.text
+-o.text:	INetInc:sys.h.types
+-o.text:	h.module
+-o.text:	h.text
+-o.stubs:	c.stubs
+-o.stubs:	C:h.kernel
+-o.stubs:	INetInc:sys.h.types
+-o.stubs:	INetInc:sys.h.errno
+-o.stubs:	INetInc:sys.^.h.errno
+-o.stubs:	C:h.kernel
+-o.stubs:	INetInc:sys.h.socket
+-o.stubs:	INetInc:sys.h.time
+-o.stubs:	INetInc:sys.h.time
+-o.stubs:	h.stubs
+-o.stubs:	h.debug
+-o.inetfn:	c.inetfn
+-o.inetfn:	INetInc:sys.h.types
+-o.inetfn:	INetInc:netinet.h.in
+-o.inetfn:	h.inetfn
+-o.debug:	c.debug
+-o.debug:	C:h.kernel
+-o.debug:	C:h.swis
+-o.debug:	h.debug
++include Depends
+diff --git a/castle/RiscOS/Sources/Networking/BBCEconet/Makefile b/castle/RiscOS/Sources/Networking/BBCEconet/Makefile
+index bba90b5..2764b21 100644
+--- a/castle/RiscOS/Sources/Networking/BBCEconet/Makefile
++++ b/castle/RiscOS/Sources/Networking/BBCEconet/Makefile
+@@ -31,4 +31,4 @@ RESOURCES     = No
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Networking/DHCP/Makefile b/castle/RiscOS/Sources/Networking/DHCP/Makefile
+index aaa0c94..2774b23 100644
+--- a/castle/RiscOS/Sources/Networking/DHCP/Makefile
++++ b/castle/RiscOS/Sources/Networking/DHCP/Makefile
+@@ -44,4 +44,4 @@ include CModule
+ 
+ CFLAGS      += -wp
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Networking/Econet/Loader/Makefile b/castle/RiscOS/Sources/Networking/Econet/Loader/Makefile
+index 3760551..0b852f3 100644
+--- a/castle/RiscOS/Sources/Networking/Econet/Loader/Makefile
++++ b/castle/RiscOS/Sources/Networking/Econet/Loader/Makefile
+@@ -68,16 +68,4 @@ ${LOADER}: s.Loader
+         ${AS} s.Loader $@ ${AFLAGS}
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
+-rm.Loader: Hdr:ListOpts
+-rm.Loader: Hdr:Macros
+-rm.Loader: Hdr:System
+-rm.Loader: Hdr:SWIs
+-rm.Loader: Hdr:CPU.Generic26
+-rm.Loader: Hdr:IO.GenericIO
+-rm.Loader: Hdr:RISCOS
+-rm.Loader: Hdr:ModHand
+-rm.Loader: Hdr:FSNumbers
+-rm.Loader: Hdr:NewErrors
+-rm.Loader: Hdr:Podule
+-rm.Loader: Version
++include Depends
+diff --git a/castle/RiscOS/Sources/Networking/Econet/Makefile b/castle/RiscOS/Sources/Networking/Econet/Makefile
+index 17526c4..4a1957e 100644
+--- a/castle/RiscOS/Sources/Networking/Econet/Makefile
++++ b/castle/RiscOS/Sources/Networking/Econet/Makefile
+@@ -141,4 +141,4 @@ ${MESSAGESMOD}: ${MESSAGES} VersionNum
+ 
+ #---------------------------------------------------------------------------
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Networking/NetStatus/Makefile b/castle/RiscOS/Sources/Networking/NetStatus/Makefile
+index 12aa112..a11d01d 100644
+--- a/castle/RiscOS/Sources/Networking/NetStatus/Makefile
++++ b/castle/RiscOS/Sources/Networking/NetStatus/Makefile
+@@ -32,4 +32,4 @@ RESOURCES = No
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Networking/Omni/Protocols/LanManFS/Makefile b/castle/RiscOS/Sources/Networking/Omni/Protocols/LanManFS/Makefile
+index 806d081..4f9c5a9 100644
+--- a/castle/RiscOS/Sources/Networking/Omni/Protocols/LanManFS/Makefile
++++ b/castle/RiscOS/Sources/Networking/Omni/Protocols/LanManFS/Makefile
+@@ -45,4 +45,4 @@ include CModule
+ o.MyResObj od.MyResObj: LocalRes:ROM.Sprites ${MERGEDMSGS} ${DIRS}
+         ${RESGEN} ${RES_AREA} $@ ${MERGEDMSGS} ${RES_PATH}.Messages LocalRes:ROM.Sprites ${RES_PATH}.Sprites 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Printing/Modules/MakePSFont/Makefile b/castle/RiscOS/Sources/Printing/Modules/MakePSFont/Makefile
+index f00cc3c..7e2ab5a 100644
+--- a/castle/RiscOS/Sources/Printing/Modules/MakePSFont/Makefile
++++ b/castle/RiscOS/Sources/Printing/Modules/MakePSFont/Makefile
+@@ -149,4 +149,4 @@ rom_link:
+ ${EXP_HDR}.MakePSFont: hdr.MakePSFont
+         ${CP} hdr.MakePSFont $@ ${CPFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Printing/Modules/PDriver/Makefile b/castle/RiscOS/Sources/Printing/Modules/PDriver/Makefile
+index 9f786c1..017d751 100644
+--- a/castle/RiscOS/Sources/Printing/Modules/PDriver/Makefile
++++ b/castle/RiscOS/Sources/Printing/Modules/PDriver/Makefile
+@@ -107,4 +107,4 @@ ${ROM_MODULE}: s.PDriver
+ ${EXP_HDR}.PDriver: hdr.PDriver
+         ${CP} hdr.PDriver $@ ${CPFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Printing/PDumpers/Makefile b/castle/RiscOS/Sources/Printing/PDumpers/Makefile
+index 4d8d0f4..6e3207b 100644
+--- a/castle/RiscOS/Sources/Printing/PDumpers/Makefile
++++ b/castle/RiscOS/Sources/Printing/PDumpers/Makefile
+@@ -165,4 +165,4 @@ Sprite:
+         ${SUBMAKE} ^.rm.PDumperSP25 INSTDIR=^.rm
+         @back
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Printing/PDumpers/PDumper24/Makefile b/castle/RiscOS/Sources/Printing/PDumpers/PDumper24/Makefile
+index 792b9e5..244d304 100644
+--- a/castle/RiscOS/Sources/Printing/PDumpers/PDumper24/Makefile
++++ b/castle/RiscOS/Sources/Printing/PDumpers/PDumper24/Makefile
+@@ -39,4 +39,4 @@ export_hdrs:: ^.hdr.PDumper
+         ${CP} ^.hdr.PDumper ${EXP_HDR}.PDumper ${CPFLAGS}
+         @${ECHO} ${COMPONENT}: header export complete
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Printing/PDumpers/PDumperCX/Makefile b/castle/RiscOS/Sources/Printing/PDumpers/PDumperCX/Makefile
+index 0a54ca0..ac02292 100644
+--- a/castle/RiscOS/Sources/Printing/PDumpers/PDumperCX/Makefile
++++ b/castle/RiscOS/Sources/Printing/PDumpers/PDumperCX/Makefile
+@@ -39,4 +39,4 @@ export_hdrs:: ^.hdr.PDumper
+         ${CP} ^.hdr.PDumper ${EXP_HDR}.PDumper ${CPFLAGS}
+         @${ECHO} ${COMPONENT}: header export complete
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Printing/PDumpers/PDumperDM/Makefile b/castle/RiscOS/Sources/Printing/PDumpers/PDumperDM/Makefile
+index f2976df..d328b41 100644
+--- a/castle/RiscOS/Sources/Printing/PDumpers/PDumperDM/Makefile
++++ b/castle/RiscOS/Sources/Printing/PDumpers/PDumperDM/Makefile
+@@ -39,4 +39,4 @@ export_hdrs:: ^.hdr.PDumper
+         ${CP} ^.hdr.PDumper ${EXP_HDR}.PDumper ${CPFLAGS}
+         @${ECHO} ${COMPONENT}: header export complete
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Printing/PDumpers/PDumperE2/Makefile b/castle/RiscOS/Sources/Printing/PDumpers/PDumperE2/Makefile
+index 57cfce8..bb73db0 100644
+--- a/castle/RiscOS/Sources/Printing/PDumpers/PDumperE2/Makefile
++++ b/castle/RiscOS/Sources/Printing/PDumpers/PDumperE2/Makefile
+@@ -39,4 +39,4 @@ export_hdrs:: ^.hdr.PDumper
+         ${CP} ^.hdr.PDumper ${EXP_HDR}.PDumper ${CPFLAGS}
+         @${ECHO} ${COMPONENT}: header export complete
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Printing/PDumpers/PDumperIW/Makefile b/castle/RiscOS/Sources/Printing/PDumpers/PDumperIW/Makefile
+index 636e502..85cda41 100644
+--- a/castle/RiscOS/Sources/Printing/PDumpers/PDumperIW/Makefile
++++ b/castle/RiscOS/Sources/Printing/PDumpers/PDumperIW/Makefile
+@@ -39,4 +39,4 @@ export_hdrs:: ^.hdr.PDumper
+         ${CP} ^.hdr.PDumper ${EXP_HDR}.PDumper ${CPFLAGS}
+         @${ECHO} ${COMPONENT}: header export complete
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Printing/PDumpers/PDumperLJ/Makefile b/castle/RiscOS/Sources/Printing/PDumpers/PDumperLJ/Makefile
+index 19c3f30..badeca0 100644
+--- a/castle/RiscOS/Sources/Printing/PDumpers/PDumperLJ/Makefile
++++ b/castle/RiscOS/Sources/Printing/PDumpers/PDumperLJ/Makefile
+@@ -39,4 +39,4 @@ export_hdrs:: ^.hdr.PDumper
+         ${CP} ^.hdr.PDumper ${EXP_HDR}.PDumper ${CPFLAGS}
+         @${ECHO} ${COMPONENT}: header export complete
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Printing/PDumpers/PDumperPCL/Makefile b/castle/RiscOS/Sources/Printing/PDumpers/PDumperPCL/Makefile
+index 9afed9a..e37b001 100644
+--- a/castle/RiscOS/Sources/Printing/PDumpers/PDumperPCL/Makefile
++++ b/castle/RiscOS/Sources/Printing/PDumpers/PDumperPCL/Makefile
+@@ -40,4 +40,4 @@ export_hdrs:: ^.hdr.PDumper
+         ${CP} ^.hdr.PDumper ${EXP_HDR}.PDumper ${CPFLAGS}
+         @${ECHO} ${COMPONENT}: header export complete
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Printing/PDumpers/PDumperSP/Makefile b/castle/RiscOS/Sources/Printing/PDumpers/PDumperSP/Makefile
+index 0e3c2b9..042b236 100644
+--- a/castle/RiscOS/Sources/Printing/PDumpers/PDumperSP/Makefile
++++ b/castle/RiscOS/Sources/Printing/PDumpers/PDumperSP/Makefile
+@@ -39,4 +39,4 @@ export_hdrs:: ^.hdr.PDumper
+         ${CP} ^.hdr.PDumper ${EXP_HDR}.PDumper ${CPFLAGS}
+         @${ECHO} ${COMPONENT}: header export complete
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Programmer/BASIC/Makefile b/castle/RiscOS/Sources/Programmer/BASIC/Makefile
+index 7da236b..4b061a9 100644
+--- a/castle/RiscOS/Sources/Programmer/BASIC/Makefile
++++ b/castle/RiscOS/Sources/Programmer/BASIC/Makefile
+@@ -49,4 +49,4 @@ o.VFPData: s.VFPData
+ clean::
+         ${RM} s.VFPData
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Programmer/BASICTrans/Makefile b/castle/RiscOS/Sources/Programmer/BASICTrans/Makefile
+index ba28cad..10d6203 100644
+--- a/castle/RiscOS/Sources/Programmer/BASICTrans/Makefile
++++ b/castle/RiscOS/Sources/Programmer/BASICTrans/Makefile
+@@ -32,4 +32,4 @@ RESFSDIR     = ${RESDIR}.BASIC
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Programmer/BootCmds/Makefile b/castle/RiscOS/Sources/Programmer/BootCmds/Makefile
+index 1b383f5..a853bea 100644
+--- a/castle/RiscOS/Sources/Programmer/BootCmds/Makefile
++++ b/castle/RiscOS/Sources/Programmer/BootCmds/Makefile
+@@ -61,4 +61,4 @@ o.msgs:    ${DIRS} LocalRes:Messages aif.Repeat
+ aif.Repeat: ${DIRS} repeatcmd.c
+         ${CC} ${CINCLUDES} -o $@ repeatcmd.c ${CLIB} ${OSLIB}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Programmer/DDEUtils/Makefile b/castle/RiscOS/Sources/Programmer/DDEUtils/Makefile
+index 4ef0583..8252cca 100644
+--- a/castle/RiscOS/Sources/Programmer/DDEUtils/Makefile
++++ b/castle/RiscOS/Sources/Programmer/DDEUtils/Makefile
+@@ -25,4 +25,4 @@ HEADER1   = DDEUtils
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Programmer/DDT/Makefile b/castle/RiscOS/Sources/Programmer/DDT/Makefile
+index a25cf1f..a505815 100644
+--- a/castle/RiscOS/Sources/Programmer/DDT/Makefile
++++ b/castle/RiscOS/Sources/Programmer/DDT/Makefile
+@@ -56,4 +56,4 @@ export: ${EXPORTS}
+ ${EXP_HDR}.DDT: hdr.DDT
+         ${CP} hdr.DDT $@ ${CPFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Programmer/Debugger/Makefile b/castle/RiscOS/Sources/Programmer/Debugger/Makefile
+index 140b5e3..29ad7ab 100644
+--- a/castle/RiscOS/Sources/Programmer/Debugger/Makefile
++++ b/castle/RiscOS/Sources/Programmer/Debugger/Makefile
+@@ -34,4 +34,4 @@ HEADER1       = Debugger
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile b/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile
+index 6dca1c0..543aeca 100644
+--- a/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile
++++ b/castle/RiscOS/Sources/Programmer/HdrSrc/Makefile
+@@ -333,4 +333,4 @@ ${HDRDIR}.Symbols:           hdr.Symbols;           ${CP} hdr.Symbols
+ ${HDRDIR}.System:            hdr.System;            ${CP} hdr.System               $@ ${CPFLAGS}
+ ${HDRDIR}.Tokens:            hdr.Tokens;            ${CP} hdr.Tokens               $@ ${CPFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Programmer/HostFS/Makefile b/castle/RiscOS/Sources/Programmer/HostFS/Makefile
+index 11a63dc..1a94683 100644
+--- a/castle/RiscOS/Sources/Programmer/HostFS/Makefile
++++ b/castle/RiscOS/Sources/Programmer/HostFS/Makefile
+@@ -82,4 +82,4 @@ ${EXP_HDR}.HostFS: hdr.HostFS
+ ${EXP_HDR}.HostDebug: hdr.HostDebug
+         ${CP} hdr.HostDebug $@ ${CPFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Programmer/Obey/Makefile b/castle/RiscOS/Sources/Programmer/Obey/Makefile
+index 51638bb..d7f096d 100644
+--- a/castle/RiscOS/Sources/Programmer/Obey/Makefile
++++ b/castle/RiscOS/Sources/Programmer/Obey/Makefile
+@@ -30,4 +30,4 @@ COMPONENT   ?= Obey
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/SystemRes/HeroNames/Makefile b/castle/RiscOS/Sources/SystemRes/HeroNames/Makefile
+index e459790..ccfbd26 100644
+--- a/castle/RiscOS/Sources/SystemRes/HeroNames/Makefile
++++ b/castle/RiscOS/Sources/SystemRes/HeroNames/Makefile
+@@ -42,4 +42,4 @@ install_rom: ${DATA}
+         ${CP} ${DATA} ${INSTDIR}.${TARGET} ${CPFLAGS}
+         @echo ${COMPONENT}: rom module installed
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/ColourDbox/Makefile b/castle/RiscOS/Sources/Toolbox/ColourDbox/Makefile
+index c3ef7cc..da793bb 100644
+--- a/castle/RiscOS/Sources/Toolbox/ColourDbox/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/ColourDbox/Makefile
+@@ -48,4 +48,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/ColourMenu/Makefile b/castle/RiscOS/Sources/Toolbox/ColourMenu/Makefile
+index 1fbdace..e134491 100644
+--- a/castle/RiscOS/Sources/Toolbox/ColourMenu/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/ColourMenu/Makefile
+@@ -48,4 +48,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/Common/Makefile b/castle/RiscOS/Sources/Toolbox/Common/Makefile
+index 4e125f0..583c446 100644
+--- a/castle/RiscOS/Sources/Toolbox/Common/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Common/Makefile
+@@ -143,4 +143,4 @@ dirs:
+         ${MKDIR} ${EXPORTS}.h
+         ${MKDIR} ${EXPORTS}.o
+ #
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/DCS/Makefile b/castle/RiscOS/Sources/Toolbox/DCS/Makefile
+index 477a7fb..45cebcb 100644
+--- a/castle/RiscOS/Sources/Toolbox/DCS/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/DCS/Makefile
+@@ -59,4 +59,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/FileInfo/Makefile b/castle/RiscOS/Sources/Toolbox/FileInfo/Makefile
+index f24e14f..e8eb164 100644
+--- a/castle/RiscOS/Sources/Toolbox/FileInfo/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/FileInfo/Makefile
+@@ -48,4 +48,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/FontDbox/Makefile b/castle/RiscOS/Sources/Toolbox/FontDbox/Makefile
+index 6bb7e79..47edc6d 100644
+--- a/castle/RiscOS/Sources/Toolbox/FontDbox/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/FontDbox/Makefile
+@@ -48,4 +48,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/FontMenu/Makefile b/castle/RiscOS/Sources/Toolbox/FontMenu/Makefile
+index af3221e..4ed702f 100644
+--- a/castle/RiscOS/Sources/Toolbox/FontMenu/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/FontMenu/Makefile
+@@ -48,4 +48,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/Gadgets/Makefile b/castle/RiscOS/Sources/Toolbox/Gadgets/Makefile
+index 445e80e..ba2174b 100644
+--- a/castle/RiscOS/Sources/Toolbox/Gadgets/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Gadgets/Makefile
+@@ -50,4 +50,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/IconBar/Makefile b/castle/RiscOS/Sources/Toolbox/IconBar/Makefile
+index 66e4cb6..ce34683 100644
+--- a/castle/RiscOS/Sources/Toolbox/IconBar/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/IconBar/Makefile
+@@ -48,4 +48,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/Libs/eventlib/Makefile b/castle/RiscOS/Sources/Toolbox/Libs/eventlib/Makefile
+index b378484..ed700ac 100644
+--- a/castle/RiscOS/Sources/Toolbox/Libs/eventlib/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Libs/eventlib/Makefile
+@@ -164,4 +164,4 @@ ${TARGETZ}: ${OBJSZ} local_dirs
+ 
+ 
+ # ------------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/Libs/flexlib/Makefile b/castle/RiscOS/Sources/Toolbox/Libs/flexlib/Makefile
+index ee91483..931dea9 100644
+--- a/castle/RiscOS/Sources/Toolbox/Libs/flexlib/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Libs/flexlib/Makefile
+@@ -157,4 +157,4 @@ ${TARGETZ}: ${OBJSZ} local_dirs
+ 
+ 
+ # ------------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/Libs/renderlib/Makefile b/castle/RiscOS/Sources/Toolbox/Libs/renderlib/Makefile
+index 8cfc4d3..3b9a807 100644
+--- a/castle/RiscOS/Sources/Toolbox/Libs/renderlib/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Libs/renderlib/Makefile
+@@ -115,4 +115,4 @@ $(TARGET): $(OBJS) local_dirs
+ 
+ 
+ # ------------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/Libs/toolboxlib/Makefile b/castle/RiscOS/Sources/Toolbox/Libs/toolboxlib/Makefile
+index 5911aa9..0cc3f6f 100644
+--- a/castle/RiscOS/Sources/Toolbox/Libs/toolboxlib/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Libs/toolboxlib/Makefile
+@@ -155,4 +155,4 @@ dirs:
+ $(TARGET): local_dirs
+ 	Obey	@.!Mk
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/Libs/wimplib/Makefile b/castle/RiscOS/Sources/Toolbox/Libs/wimplib/Makefile
+index c77510a..18a3ff6 100644
+--- a/castle/RiscOS/Sources/Toolbox/Libs/wimplib/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Libs/wimplib/Makefile
+@@ -200,4 +200,4 @@ ${EXP_HDR}.${COMPONENT}: hdr.${COMPONENT}
+ 
+ 
+ # ------------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/Menu/Makefile b/castle/RiscOS/Sources/Toolbox/Menu/Makefile
+index 7324778..8e31ab8 100644
+--- a/castle/RiscOS/Sources/Toolbox/Menu/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Menu/Makefile
+@@ -48,4 +48,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/PrintDbox/Makefile b/castle/RiscOS/Sources/Toolbox/PrintDbox/Makefile
+index 79e9704..2562940 100644
+--- a/castle/RiscOS/Sources/Toolbox/PrintDbox/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/PrintDbox/Makefile
+@@ -45,4 +45,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/ProgInfo/Makefile b/castle/RiscOS/Sources/Toolbox/ProgInfo/Makefile
+index f1bb8e4..e23990a 100644
+--- a/castle/RiscOS/Sources/Toolbox/ProgInfo/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/ProgInfo/Makefile
+@@ -48,4 +48,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/SaveAs/Makefile b/castle/RiscOS/Sources/Toolbox/SaveAs/Makefile
+index 82fc885..1b93f0b 100644
+--- a/castle/RiscOS/Sources/Toolbox/SaveAs/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/SaveAs/Makefile
+@@ -48,4 +48,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/Scale/Makefile b/castle/RiscOS/Sources/Toolbox/Scale/Makefile
+index 6114ec7..fe7e6fc 100644
+--- a/castle/RiscOS/Sources/Toolbox/Scale/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Scale/Makefile
+@@ -48,4 +48,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/TinyStubs/Makefile b/castle/RiscOS/Sources/Toolbox/TinyStubs/Makefile
+index a6abebe..f982b20 100644
+--- a/castle/RiscOS/Sources/Toolbox/TinyStubs/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/TinyStubs/Makefile
+@@ -32,4 +32,4 @@ RESFSDIR      = ${RESDIR}.${COMPONENT}
+ 
+ include CModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/ToolAction/Makefile b/castle/RiscOS/Sources/Toolbox/ToolAction/Makefile
+index b02ed38..e4be2f8 100644
+--- a/castle/RiscOS/Sources/Toolbox/ToolAction/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/ToolAction/Makefile
+@@ -187,4 +187,4 @@ o.main oz.main: h.modhdr
+ o.resdata: LocalRes:Messages
+ 	${RESGEN} toolaction_resources $@ LocalRes:Messages Resources.ToolAction.Messages
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/Toolbox/Makefile b/castle/RiscOS/Sources/Toolbox/Toolbox/Makefile
+index 9c605bd..8c958ae 100644
+--- a/castle/RiscOS/Sources/Toolbox/Toolbox/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Toolbox/Makefile
+@@ -47,4 +47,4 @@ clean: toolbox-clean
+ 
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Toolbox/Window/Makefile b/castle/RiscOS/Sources/Toolbox/Window/Makefile
+index 17c2a65..86a4754 100644
+--- a/castle/RiscOS/Sources/Toolbox/Window/Makefile
++++ b/castle/RiscOS/Sources/Toolbox/Window/Makefile
+@@ -57,4 +57,4 @@ clean: toolbox-clean
+         @echo ${COMPONENT}: cleaned
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/HWSupport/VIDC20Video/Makefile b/castle/RiscOS/Sources/Video/HWSupport/VIDC20Video/Makefile
+index b585c3d..776b597 100644
+--- a/castle/RiscOS/Sources/Video/HWSupport/VIDC20Video/Makefile
++++ b/castle/RiscOS/Sources/Video/HWSupport/VIDC20Video/Makefile
+@@ -24,4 +24,4 @@ RESOURCES = no
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/Render/Colours/Makefile b/castle/RiscOS/Sources/Video/Render/Colours/Makefile
+index 7a90066..3031160 100644
+--- a/castle/RiscOS/Sources/Video/Render/Colours/Makefile
++++ b/castle/RiscOS/Sources/Video/Render/Colours/Makefile
+@@ -73,4 +73,4 @@ MkTables.maketables: MkTables.c.maketables
+         ${MAKE} -f maketables/mk COMPONENT=maketables THROWBACK=${THROWBACK}
+         ${CD} ^
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/Render/Draw/Makefile b/castle/RiscOS/Sources/Video/Render/Draw/Makefile
+index 20eac47..9929359 100644
+--- a/castle/RiscOS/Sources/Video/Render/Draw/Makefile
++++ b/castle/RiscOS/Sources/Video/Render/Draw/Makefile
+@@ -32,4 +32,4 @@ HEADER1    = Draw
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/Render/DrawFile/Makefile b/castle/RiscOS/Sources/Video/Render/DrawFile/Makefile
+index 76f356d..1ffaa77 100644
+--- a/castle/RiscOS/Sources/Video/Render/DrawFile/Makefile
++++ b/castle/RiscOS/Sources/Video/Render/DrawFile/Makefile
+@@ -37,4 +37,4 @@ RESFSDIR    = ${RESDIR}.${COMPONENT}
+ 
+ include CModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/Render/Fonts/ITable/Makefile b/castle/RiscOS/Sources/Video/Render/Fonts/ITable/Makefile
+index e2f72b4..431197a 100644
+--- a/castle/RiscOS/Sources/Video/Render/Fonts/ITable/Makefile
++++ b/castle/RiscOS/Sources/Video/Render/Fonts/ITable/Makefile
+@@ -27,4 +27,4 @@ include StdTools
+ include ModuleLibs
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/Render/Fonts/Manager/Makefile b/castle/RiscOS/Sources/Video/Render/Fonts/Manager/Makefile
+index a990439..80e6c5d 100644
+--- a/castle/RiscOS/Sources/Video/Render/Fonts/Manager/Makefile
++++ b/castle/RiscOS/Sources/Video/Render/Fonts/Manager/Makefile
+@@ -32,4 +32,4 @@ HEADER1   = Font
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/Render/Fonts/ROMFonts/Makefile b/castle/RiscOS/Sources/Video/Render/Fonts/ROMFonts/Makefile
+index bbda697..7048e98 100644
+--- a/castle/RiscOS/Sources/Video/Render/Fonts/ROMFonts/Makefile
++++ b/castle/RiscOS/Sources/Video/Render/Fonts/ROMFonts/Makefile
+@@ -130,4 +130,4 @@ o.MaruGothic:
+ rm.MaruGothic: o.MaruGothic
+ 	${LD} ${LDFLAGS} o.MaruGothic
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/Render/Hourglass/Hourmake/Makefile b/castle/RiscOS/Sources/Video/Render/Hourglass/Hourmake/Makefile
+index 057ace0..310b2fc 100644
+--- a/castle/RiscOS/Sources/Video/Render/Hourglass/Hourmake/Makefile
++++ b/castle/RiscOS/Sources/Video/Render/Hourglass/Hourmake/Makefile
+@@ -91,4 +91,4 @@ obj.hourmake: ${OBJS} ${CLIB}
+        ${LD} -o $@ ${CLIB} ${OBJS}
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/Render/Hourglass/Makefile b/castle/RiscOS/Sources/Video/Render/Hourglass/Makefile
+index 28d2cc4..90774eb 100644
+--- a/castle/RiscOS/Sources/Video/Render/Hourglass/Makefile
++++ b/castle/RiscOS/Sources/Video/Render/Hourglass/Makefile
+@@ -25,4 +25,4 @@ ROM_SOURCE = Module.s
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/Render/ScrBlank/Makefile b/castle/RiscOS/Sources/Video/Render/ScrBlank/Makefile
+index 35fe8d6..c97005c 100644
+--- a/castle/RiscOS/Sources/Video/Render/ScrBlank/Makefile
++++ b/castle/RiscOS/Sources/Video/Render/ScrBlank/Makefile
+@@ -33,4 +33,4 @@ HEADER1    = ScrBlank
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/Render/SpriteUtil/Makefile b/castle/RiscOS/Sources/Video/Render/SpriteUtil/Makefile
+index 188f58b..eb2d30b 100644
+--- a/castle/RiscOS/Sources/Video/Render/SpriteUtil/Makefile
++++ b/castle/RiscOS/Sources/Video/Render/SpriteUtil/Makefile
+@@ -33,4 +33,4 @@ TOKHELPSRC= ${TOKENSOURCE}
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/Render/Super/Makefile b/castle/RiscOS/Sources/Video/Render/Super/Makefile
+index b643c36..6d599ed 100644
+--- a/castle/RiscOS/Sources/Video/Render/Super/Makefile
++++ b/castle/RiscOS/Sources/Video/Render/Super/Makefile
+@@ -52,4 +52,4 @@ ${ROM_OBJECT} ${SA_OBJECT} ${DBG_OBJECT}: ${MATRIX1} ${MATRIX2}
+         ${MAKE} -f matrix/mk COMPONENT=$* THROWBACK=${THROWBACK}
+         ${RUN}$* $@
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/UserI/Display/Makefile b/castle/RiscOS/Sources/Video/UserI/Display/Makefile
+index 00d550e..26f6462 100644
+--- a/castle/RiscOS/Sources/Video/UserI/Display/Makefile
++++ b/castle/RiscOS/Sources/Video/UserI/Display/Makefile
+@@ -38,4 +38,4 @@ resources_templrate ::
+ include StdTools
+ include AAsmModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/UserI/Picker/Makefile b/castle/RiscOS/Sources/Video/UserI/Picker/Makefile
+index b4e66c9..b60f0ca 100644
+--- a/castle/RiscOS/Sources/Video/UserI/Picker/Makefile
++++ b/castle/RiscOS/Sources/Video/UserI/Picker/Makefile
+@@ -262,4 +262,4 @@ ${DBG_MODULE}:  ${DBG_OBJS} ${CLIB} ${OSLIB} ${ICONS} ${ASMUTILS}
+         $(LD) -o $@ -rmf ${DBG_OBJS} ${OSLIB} ${CLIB} ${ASMUTILS}
+         Access $@ RW/R
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/UserI/ScrModes/Makefile b/castle/RiscOS/Sources/Video/UserI/ScrModes/Makefile
+index 16ddf39..73cb911 100644
+--- a/castle/RiscOS/Sources/Video/UserI/ScrModes/Makefile
++++ b/castle/RiscOS/Sources/Video/UserI/ScrModes/Makefile
+@@ -29,4 +29,4 @@ RESFSDIR      = ${RESDIR}.ScreenMode
+ 
+ include CModule
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/castle/RiscOS/Sources/Video/UserI/ScrSaver/Makefile b/castle/RiscOS/Sources/Video/UserI/ScrSaver/Makefile
+index 68f470b..cd7af1a 100644
+--- a/castle/RiscOS/Sources/Video/UserI/ScrSaver/Makefile
++++ b/castle/RiscOS/Sources/Video/UserI/ScrSaver/Makefile
+@@ -43,4 +43,4 @@ app:
+         ${CP} LocalRes:!Run !SaverAni.!Run ${CPFLAGS}
+         ${CP} LocalRes:Templates !SaverAni.Templates ${CPFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/DDTLib/Makefile b/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/DDTLib/Makefile
+index def17f2..b713aa7 100644
+--- a/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/DDTLib/Makefile
++++ b/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/DDTLib/Makefile
+@@ -88,4 +88,4 @@ clean:
+ 	@$(STRIPDEPND) MainMake
+ 	@echo $(COMPONENT): cleaned
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/Trace/Makefile b/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/Trace/Makefile
+index 7542cae..827c977 100644
+--- a/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/Trace/Makefile
++++ b/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/Trace/Makefile
+@@ -88,4 +88,4 @@ clean:
+ 	@$(STRIPDEPND) MainMake
+ 	@echo $(COMPONENT): cleaned
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/Wild/Makefile b/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/Wild/Makefile
+index 482e9a6..74b2bee 100644
+--- a/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/Wild/Makefile
++++ b/gpl/RiscOS/Sources/ThirdParty/JSmith/Lib/Wild/Makefile
+@@ -92,4 +92,4 @@ test:
+ 	@echo MFLAGS       ${MFLAGS}
+ 	@echo MAKECMDGOALS ${MAKECMDGOALS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/HWSupport/FPASC/riscos/Makefile b/mixed/RiscOS/Sources/HWSupport/FPASC/riscos/Makefile
+index 7d6dfd4..54b2208 100644
+--- a/mixed/RiscOS/Sources/HWSupport/FPASC/riscos/Makefile
++++ b/mixed/RiscOS/Sources/HWSupport/FPASC/riscos/Makefile
+@@ -109,4 +109,4 @@ BBETYPE = fpasc
+ bbe-fpasc: bbe-generic
+         BBE_Export_File ^.VersionNum
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/Lib/TCPIPLibs/inetlib/Makefile b/mixed/RiscOS/Sources/Lib/TCPIPLibs/inetlib/Makefile
+index e44f78c..047306b 100644
+--- a/mixed/RiscOS/Sources/Lib/TCPIPLibs/inetlib/Makefile
++++ b/mixed/RiscOS/Sources/Lib/TCPIPLibs/inetlib/Makefile
+@@ -121,4 +121,4 @@ clean:
+ 	${RM} inetlibzm
+ 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/Lib/TCPIPLibs/rpclib/rpc/Makefile b/mixed/RiscOS/Sources/Lib/TCPIPLibs/rpclib/rpc/Makefile
+index 71b7472..9e62b07 100644
+--- a/mixed/RiscOS/Sources/Lib/TCPIPLibs/rpclib/rpc/Makefile
++++ b/mixed/RiscOS/Sources/Lib/TCPIPLibs/rpclib/rpc/Makefile
+@@ -119,4 +119,4 @@ clean:
+         ${RM}   rpclib
+         ${RM}   rpclibzm
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/Lib/TCPIPLibs/socklib/Makefile b/mixed/RiscOS/Sources/Lib/TCPIPLibs/socklib/Makefile
+index 0adc4ff..e94ab53 100644
+--- a/mixed/RiscOS/Sources/Lib/TCPIPLibs/socklib/Makefile
++++ b/mixed/RiscOS/Sources/Lib/TCPIPLibs/socklib/Makefile
+@@ -190,4 +190,4 @@ clean:
+ 	${RM} socklib5
+ 	${RM} socklib5zm
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/Lib/TCPIPLibs/unixlib/Makefile b/mixed/RiscOS/Sources/Lib/TCPIPLibs/unixlib/Makefile
+index c28df72..95aaf27 100644
+--- a/mixed/RiscOS/Sources/Lib/TCPIPLibs/unixlib/Makefile
++++ b/mixed/RiscOS/Sources/Lib/TCPIPLibs/unixlib/Makefile
+@@ -132,4 +132,4 @@ clean:
+ 	${RM} unixlibzm
+ 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/Networking/AUN/Internet/build/Makefile b/mixed/RiscOS/Sources/Networking/AUN/Internet/build/Makefile
+index dab8231..d7fe278 100644
+--- a/mixed/RiscOS/Sources/Networking/AUN/Internet/build/Makefile
++++ b/mixed/RiscOS/Sources/Networking/AUN/Internet/build/Makefile
+@@ -186,4 +186,4 @@ bbe-internet: bbe-generic
+         BBE_Export_File ^.VersionNum
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/Programmer/Squash/Makefile b/mixed/RiscOS/Sources/Programmer/Squash/Makefile
+index b442533..c146887 100644
+--- a/mixed/RiscOS/Sources/Programmer/Squash/Makefile
++++ b/mixed/RiscOS/Sources/Programmer/Squash/Makefile
+@@ -106,4 +106,4 @@ zcat_ass.o: zcat_ass12.s
+ ${EXP_HDR}.${COMPONENT}: hdr.${COMPONENT}
+         ${CP} hdr.${COMPONENT} $@ ${CPFLAGS}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/arp/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/arp/Makefile
+index 2fc8d80..ed6e2b1 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/arp/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/arp/Makefile
+@@ -42,4 +42,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/gethost/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/gethost/Makefile
+index cbd80b4..3abc498 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/gethost/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/gethost/Makefile
+@@ -81,4 +81,4 @@ GetHost: ${OBJS} ${NET5LIBS} ${CLIB} ${DIRS}
+         ${SQUEEZE} $@
+ 
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/host/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/host/Makefile
+index aea96b5..5d6021d 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/host/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/host/Makefile
+@@ -81,4 +81,4 @@ ${DIRS}:
+ bin.Host: ${OBJS} ${NET5LIBS} ${CLIB} ${DIRS}
+         ${LD} -o $@ ${OBJS} ${NET5LIBS} ${CLIB}
+ 
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ifconfig/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ifconfig/Makefile
+index 248a249..d87fffb 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ifconfig/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ifconfig/Makefile
+@@ -42,4 +42,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ifrconfig/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ifrconfig/Makefile
+index f1fac6c..82cb99f 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ifrconfig/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ifrconfig/Makefile
+@@ -42,4 +42,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/inetstat/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/inetstat/Makefile
+index 32f19a8..f7b1358 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/inetstat/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/inetstat/Makefile
+@@ -43,4 +43,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ipvars/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ipvars/Makefile
+index 96d0e96..53fdcbb 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ipvars/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ipvars/Makefile
+@@ -46,4 +46,4 @@ $(DIRS):
+ 		cdir o
+ 		create $@
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/map-mbone/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/map-mbone/Makefile
+index ce2d5a5..3f891dd 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/map-mbone/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/map-mbone/Makefile
+@@ -42,4 +42,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/mrinfo/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/mrinfo/Makefile
+index adb52ec..9352211 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/mrinfo/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/mrinfo/Makefile
+@@ -42,4 +42,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/mtrace/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/mtrace/Makefile
+index 40d7938..0b6cf5b 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/mtrace/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/mtrace/Makefile
+@@ -42,4 +42,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/newfiler/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/newfiler/Makefile
+index acb54e8..65e449d 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/newfiler/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/newfiler/Makefile
+@@ -41,4 +41,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ping/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ping/Makefile
+index 32251f4..fca7b2d 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ping/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/ping/Makefile
+@@ -42,4 +42,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/pong/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/pong/Makefile
+index d6ae7ec..3ad74f5 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/pong/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/pong/Makefile
+@@ -42,4 +42,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/route/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/route/Makefile
+index 98d6e43..24bc804 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/route/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/route/Makefile
+@@ -42,4 +42,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/showstat/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/showstat/Makefile
+index e9f004b..ae0cc7a 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/showstat/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/showstat/Makefile
+@@ -48,4 +48,4 @@ ${DIRS}:
+ 		cdir o
+ 		create $@
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/sysctl/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/sysctl/Makefile
+index fd7b5f4..0c98556 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/sysctl/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/sysctl/Makefile
+@@ -45,4 +45,4 @@ clean:;		${RM} ${TARGET}
+ PathConf:	PathConf.o
+ 		Link -o $@ PathConf.o ${LIBS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/traceroute/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/traceroute/Makefile
+index 8d53c10..e5388b5 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/traceroute/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/traceroute/Makefile
+@@ -42,4 +42,4 @@ ${TARGET}:	$(OBJS) $(LIBS)
+ clean:;		${RM} ${TARGET}
+ 		IfThere o.* Then ${WIPE} o.* ${WFLAGS}
+ 	
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/utils/Makefile b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/utils/Makefile
+index 8e0697a..aed3281 100644
+--- a/mixed/RiscOS/Sources/SystemRes/Internet/Sources/utils/Makefile
++++ b/mixed/RiscOS/Sources/SystemRes/Internet/Sources/utils/Makefile
+@@ -96,4 +96,4 @@ utl.ReadCMOSIP: o.ReadCMOSIP
+ 
+ 
+ #---------------------------------------------------------------------------
+-# Dynamic dependencies:
++include Depends
+diff --git a/mixed/RiscOS/Sources/Video/Render/SprExtend/Makefile b/mixed/RiscOS/Sources/Video/Render/SprExtend/Makefile
+index 6cf0ddc..98dc2df 100644
+--- a/mixed/RiscOS/Sources/Video/Render/SprExtend/Makefile
++++ b/mixed/RiscOS/Sources/Video/Render/SprExtend/Makefile
+@@ -187,4 +187,4 @@ rojpeg.o:
+ asmcore.o:
+         ${CC} ${CFLAGS} ${C_NO_STKCHK} -DEMBED -DSOURCE_IS_putscaled $*.c
+ 
+-# Dynamic dependencies:
++include Depends
+-- 
+1.8.4.rc3
+

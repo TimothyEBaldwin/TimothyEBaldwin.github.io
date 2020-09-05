@@ -1,0 +1,54 @@
+Index: c/build
+===================================================================
+RCS file: /home/tim/RISC_OS/cvs2git/cvsroot/castle/RiscOS/Utilities/Release/srcbuild/c/build,v
+retrieving revision 1.46
+diff -u -r1.46 build
+--- c/build	17 Mar 2011 19:13:48 -0000	1.46
++++ c/build	6 Oct 2013 18:56:58 -0000
+@@ -176,14 +176,37 @@
+ {
+   int result;
+   char buffer[BUFFER_LEN];
++  FILE *depends;
+ 
+   sb_printf("\n%s (%s)...\n", component->name, module->path);
+   sb_buildfilename(BUFFER_LEN, buffer, build_dir, module->path, NULL);
+   result = sb_chdir(buffer);
+   if (result) {
+     error(0, "cannot locate '%s'", buffer);
++    return 0;
+   }
+-  return !result;
++
++  depends = fopen("Depends", "a");
++  if (!depends) {
++    error(0, "error opening '%s.Depends'", buffer);
++    return 0;
++  }
++
++  if (ftell(depends) == 0) {
++    /* Empty, so write the magic comment. */
++    if (fputs("# Dynamic dependencies:\n", depends) == EOF) {
++      error(0, "error writing to '%s.Depends'", buffer);
++      fclose(depends);
++      return 0;
++    }
++  }
++
++  if (fclose(depends)) {
++    error(0, "error closing '%s.Depends'", buffer);
++    return 0;
++  }
++
++  return 1;
+ }
+ 
+ 
+@@ -459,6 +482,7 @@
+                   error(0, "running make clean_all on module '%s'.", component->name);
+           if (sb_system("stripdepnd") != 0)
+                   error(0, "running stripdepnd on module '%s'.", component->name);
++          remove("Depends");
+         }
+   	/*
+   	 * no need for force clean now

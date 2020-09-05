@@ -1,0 +1,67 @@
+From 5cf006d9b5cf57de8bd44e2ce34b7713eafd9103 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Tue, 15 Oct 2013 18:47:39 +0100
+Subject: [PATCH 27/36] Move dynamic area flags to hdr.KernelWS
+
+---
+ castle/RiscOS/Sources/Kernel/hdr/KernelWS | 16 ++++++++++++++++
+ castle/RiscOS/Sources/Kernel/s/ChangeDyn  | 16 ----------------
+ 2 files changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/hdr/KernelWS b/castle/RiscOS/Sources/Kernel/hdr/KernelWS
+index 87a4ed8..35e9d0b 100644
+--- a/castle/RiscOS/Sources/Kernel/hdr/KernelWS
++++ b/castle/RiscOS/Sources/Kernel/hdr/KernelWS
+@@ -231,6 +231,22 @@ DANode_SparseHWM  #     4               ; high water mark, if Sparse area (highe
+ DANode_SortLink   #     4               ; next node in alphabetically sorted list
+ DANode_NodeSize   #     0
+ 
++; Bits in dynamic area flags (and page flags)
++;
++; rearranged slightly for Ursula - allow room for some expansion of DA flags in future without moving page flags
++; mjs June 2001 merged the Ursula arrangement into HALised kernel
++;
++DynAreaFlags_APBits             * 15 :SHL:  0   ; currently only uses 2 bits, but may extend to allow svc/usr read-only
++DynAreaFlags_NotBufferable      *  1 :SHL:  4
++DynAreaFlags_NotCacheable       *  1 :SHL:  5
++DynAreaFlags_DoublyMapped       *  1 :SHL:  6
++DynAreaFlags_NotUserDraggable   *  1 :SHL:  7
++DynAreaFlags_NeedsSpecificPages *  1 :SHL:  8   ; whether area will ever require particular physical pages
++DynAreaFlags_Shrinkable         *  1 :SHL:  9   ; whether area may be shrunk when need more space in free pool
++DynAreaFlags_SparseMap          *  1 :SHL: 10   ; whether area may have non-contiguous mapping of pages (Holey dynamic areas Batman!)
++DynAreaFlags_PiersBinding       *  1 :SHL: 11   ; whether area is bound to client application, and so may be swapped out with it (not implemented yet)
++DynAreaFlags_CPBits             *  7 :SHL: 12   ; cache policy variant for NotBufferable and NotCacheable bits
++
+ 
+ ; The addresses below are only temporary; eventually most of them will be allocated at run time (we hope!)
+ 
+diff --git a/castle/RiscOS/Sources/Kernel/s/ChangeDyn b/castle/RiscOS/Sources/Kernel/s/ChangeDyn
+index 72f4b36..4ed03fa 100644
+--- a/castle/RiscOS/Sources/Kernel/s/ChangeDyn
++++ b/castle/RiscOS/Sources/Kernel/s/ChangeDyn
+@@ -772,22 +772,6 @@ DynArea_NewAreas *      &100            ; Allocated area numbers start here
+ DynArea_NewAreasBase *  &04000000       ; Allocated area addresses start here
+ 
+ 
+-; Bits in dynamic area flags (and page flags)
+-;
+-; rearranged slightly for Ursula - allow room for some expansion of DA flags in future without moving page flags
+-; mjs June 2001 merged the Ursula arrangement into HALised kernel
+-;
+-DynAreaFlags_APBits             * 15 :SHL:  0   ; currently only uses 2 bits, but may extend to allow svc/usr read-only
+-DynAreaFlags_NotBufferable      *  1 :SHL:  4
+-DynAreaFlags_NotCacheable       *  1 :SHL:  5
+-DynAreaFlags_DoublyMapped       *  1 :SHL:  6
+-DynAreaFlags_NotUserDraggable   *  1 :SHL:  7
+-DynAreaFlags_NeedsSpecificPages *  1 :SHL:  8   ; whether area will ever require particular physical pages
+-DynAreaFlags_Shrinkable         *  1 :SHL:  9   ; whether area may be shrunk when need more space in free pool
+-DynAreaFlags_SparseMap          *  1 :SHL: 10   ; whether area may have non-contiguous mapping of pages (Holey dynamic areas Batman!)
+-DynAreaFlags_PiersBinding       *  1 :SHL: 11   ; whether area is bound to client application, and so may be swapped out with it (not implemented yet)
+-DynAreaFlags_CPBits             *  7 :SHL: 12   ; cache policy variant for NotBufferable and NotCacheable bits
+-
+ ; Cache policies
+ ;
+ CP_NCNB_Default                 * 0             ; no policy variants
+-- 
+1.8.4.rc3
+

@@ -1,0 +1,1465 @@
+From 5763b99b05639a9e7d3e45d6aa3198a05aa5376b Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Tue, 1 Oct 2013 19:15:51 +0100
+Subject: [PATCH 14/35] Use vMRS and vMSR Macros in the kernel.
+
+---
+ castle/RiscOS/Sources/Kernel/s/ArthurSWIs     |  2 +-
+ castle/RiscOS/Sources/Kernel/s/ChangeDyn      | 20 ++++----
+ castle/RiscOS/Sources/Kernel/s/HeapMan        |  8 ++--
+ castle/RiscOS/Sources/Kernel/s/Kernel         | 68 +++++++++++++--------------
+ castle/RiscOS/Sources/Kernel/s/MemInfo        |  6 +--
+ castle/RiscOS/Sources/Kernel/s/Middle         | 42 ++++++++---------
+ castle/RiscOS/Sources/Kernel/s/ModHand        | 12 ++---
+ castle/RiscOS/Sources/Kernel/s/MoreSWIs       |  2 +-
+ castle/RiscOS/Sources/Kernel/s/MsgCode        |  6 +--
+ castle/RiscOS/Sources/Kernel/s/NewIRQs        | 26 +++++-----
+ castle/RiscOS/Sources/Kernel/s/NewReset       | 20 ++++----
+ castle/RiscOS/Sources/Kernel/s/PMF/IIC        | 52 ++++++++++----------
+ castle/RiscOS/Sources/Kernel/s/PMF/i2cutils   | 24 +++++-----
+ castle/RiscOS/Sources/Kernel/s/PMF/key        | 20 ++++----
+ castle/RiscOS/Sources/Kernel/s/PMF/osbyte     | 16 +++----
+ castle/RiscOS/Sources/Kernel/s/PMF/oseven     |  6 +--
+ castle/RiscOS/Sources/Kernel/s/PMF/osinit     |  6 +--
+ castle/RiscOS/Sources/Kernel/s/vdu/vducursoft | 12 ++---
+ castle/RiscOS/Sources/Kernel/s/vdu/vdugrafv   |  6 +--
+ castle/RiscOS/Sources/Kernel/s/vdu/vdupalette |  6 +--
+ castle/RiscOS/Sources/Kernel/s/vdu/vdupointer |  6 +--
+ castle/RiscOS/Sources/Kernel/s/vdu/vduswis    |  4 +-
+ 22 files changed, 185 insertions(+), 185 deletions(-)
+
+diff --git a/castle/RiscOS/Sources/Kernel/s/ArthurSWIs b/castle/RiscOS/Sources/Kernel/s/ArthurSWIs
+index 041f5f4..4dd5ab2 100644
+--- a/castle/RiscOS/Sources/Kernel/s/ArthurSWIs
++++ b/castle/RiscOS/Sources/Kernel/s/ArthurSWIs
+@@ -1192,7 +1192,7 @@ CallAVector_SWI  ; R9 is the vector number (!!)
+        MOV       R10, R9
+        MSR       CPSR_f, R12            ; restore caller CCs (including V)
+        BL        CallVector
+-       MRS       r10, CPSR              ; restore CCs
++       vMRS      r10, CPSR              ; restore CCs
+        LDR       lr, [sp], #4
+      [ NoARMT2
+        AND       r10, r10, #&F0000000
+diff --git a/castle/RiscOS/Sources/Kernel/s/ChangeDyn b/castle/RiscOS/Sources/Kernel/s/ChangeDyn
+index dcf4717..07b5b6d 100644
+--- a/castle/RiscOS/Sources/Kernel/s/ChangeDyn
++++ b/castle/RiscOS/Sources/Kernel/s/ChangeDyn
+@@ -2702,9 +2702,9 @@ CreateChocolateBlockArray ROUT
+ ;
+ ClaimChocolateBlock ROUT
+         Push    "r1,r4,lr"
+-        MRS     r4,CPSR
++        vMRS    r4,CPSR
+         ORR     r1,r4,#I32_bit
+-        MSR     CPSR_c,r1         ;protect critical manipulation from interrupt re-entry
++        vMSR    CPSR_c,r1         ;protect critical manipulation from interrupt re-entry
+         LDR     r2,[r3,#8]        ;pick up block container at front of free list
+         CMP     r2,#0
+         BEQ     ClaimChocolateBlock_NoneFree
+@@ -2717,14 +2717,14 @@ ClaimChocolateBlock ROUT
+         LDR     r3,[r3,#4]
+         SUB     r3,r3,#4          ;size of block
+         BIC     r4,r4,#V_bit      ;return with V clear
+-        MSR     CPSR_cf,r4        ;restore IRQ state
++        vMSR    CPSR_cf,r4        ;restore IRQ state
+         Pull    "r1,r4,pc"
+ ;
+ ;DON'T even think about internationalisation - this exit route must be fast
+ ClaimChocolateBlock_NoneFree
+         ADR     R0,ChocolateBlock_NFError
+         ORR     r4,r4,#V_bit      ;return with V set
+-        MSR     CPSR_cf,r4        ;restore IRQ state
++        vMSR    CPSR_cf,r4        ;restore IRQ state
+         Pull    "r1,r4,pc"
+ 
+ ;
+@@ -2737,9 +2737,9 @@ ClaimChocolateBlock_NoneFree
+ ;
+ FreeChocolateBlock ROUT
+         Push    "r2,r3,r4,lr"
+-        MRS     r4,CPSR
++        vMRS    r4,CPSR
+         ORR     r3,r4,#I32_bit
+-        MSR     CPSR_c,r3         ;protect critical manipulation from interrupt re-entry
++        vMSR    CPSR_c,r3         ;protect critical manipulation from interrupt re-entry
+         ADD     r3,r1,#12         ;r3 -> first block container
+         SUB     r2,r2,#4          ;r2 -> container for block (if valid)
+         CMP     r2,r3
+@@ -2764,14 +2764,14 @@ FreeChocolateBlock ROUT
+         STR     lr,[r2,#4]        ;chain free list to block container we are freeing
+         STR     r2,[r1,#8]        ;put freed block container at front
+         BIC     r4,r4,#V_bit      ;return with V clear
+-        MSR     CPSR_cf,r4        ;restore IRQ state
++        vMSR    CPSR_cf,r4        ;restore IRQ state
+         Pull    "r2,r3,r4,pc"
+ ;
+ ;DON'T even think about internationalisation - this exit route must be fast
+ FreeChocolateBlock_NaffOff
+         ADR     R0,ChocolateBlock_NOError
+         ORR     r4,r4,#V_bit      ;return with V set
+-        MSR     CPSR_cf,r4        ;restore IRQ state
++        vMSR    CPSR_cf,r4        ;restore IRQ state
+         Pull    "r2,r3,r4,pc"
+ 
+ ;
+@@ -4150,7 +4150,7 @@ DoTheGrowPagesSpecified ROUT
+         ADR     r8, PageBlock1
+         LDR     r9, Offset1To2
+ 70
+-        MRS     r14, CPSR
++        vMRS    r14, CPSR
+         STR     r14, SavedPSR                   ; save old PSR (note: stack must be flat when we do this!)
+ 
+     [ FastCDA_NoPhysical
+@@ -4344,7 +4344,7 @@ DoTheGrowPagesSpecified ROUT
+ 
+ 77
+         LDR     lr, SavedPSR
+-        MSR     CPSR_cf, lr
++        vMSR    CPSR_cf, lr
+ 
+       [ :LNOT: FastCDA_FIQs
+         Push    "r1"
+diff --git a/castle/RiscOS/Sources/Kernel/s/HeapMan b/castle/RiscOS/Sources/Kernel/s/HeapMan
+index 23cf54d..6f10995 100644
+--- a/castle/RiscOS/Sources/Kernel/s/HeapMan
++++ b/castle/RiscOS/Sources/Kernel/s/HeapMan
+@@ -326,7 +326,7 @@ inspect_IRQ_stack
+ 
+    ; Could we poke these into the IRQ stack too...?
+    ; would allow interruptible IRQ processes to do heap ops!!!
+-         MRS    lr, CPSR
++         vMRS   lr, CPSR
+          STMIA  R12, {R0-R4, R11, lr}
+ ; Any errors that were generated by the foreground operation may have ended up
+ ; using one of MessageTrans' IRQ buffers. Trouble is, any number of IRQ errors
+@@ -398,7 +398,7 @@ GoodHeapExit                            ; V cleared on entry to SWI dispatch
+         ORRVS   lr, lr, #V_bit          ; VSet Exit
+ 
+       [ HeapTestbed
+-        MSR     CPSR_cxsf, lr           ; Fake exit for testbed
++        vMSR    CPSR_cxsf, lr           ; Fake exit for testbed
+         Pull    "r10-r12,pc"
+       |
+         ExitSWIHandler                  ; Like all good SWI handlers
+@@ -1231,13 +1231,13 @@ MakeBlockBigger
+         SUBEQ    HpTemp, HpTemp, bp
+         BICEQ    HpTemp, HpTemp, #3
+                                            ; force it to a sensible blocksize
+-        MRS      lr, CPSR                  ; save EQ/NE state
++        vMRS     lr, CPSR                  ; save EQ/NE state
+ 
+         CMP      HpTemp, size
+         BLT      try_add_preceding_block
+ 
+         ORR      lr, lr, #I32_bit          ; disable IRQs
+-        MSR      CPSR_cf, lr
++        vMSR     CPSR_cf, lr
+ 
+  [ debheap
+ ; HpTemp, EQ/NE critical
+diff --git a/castle/RiscOS/Sources/Kernel/s/Kernel b/castle/RiscOS/Sources/Kernel/s/Kernel
+index d3bce88..c4d2093 100644
+--- a/castle/RiscOS/Sources/Kernel/s/Kernel
++++ b/castle/RiscOS/Sources/Kernel/s/Kernel
+@@ -249,7 +249,7 @@ Local_SLVK
+         LDR     r10, SWIRelocationZeroPage
+       ]
+       [ FixCallBacks
+-        MSR     CPSR_c, #I32_bit + SVC32_mode           ; IRQs off makes CallBackFlag atomic; 32bit so ready for SPSR use
++        vMSR    CPSR_c, #I32_bit + SVC32_mode           ; IRQs off makes CallBackFlag atomic; 32bit so ready for SPSR use
+       ]
+         LDRB    r11, [r10, #CallBack_Flag]
+ 
+@@ -262,9 +262,9 @@ SWIReturnWithCallBackFlag * {PC}-SWIRelocation
+ 40      TEQ     r11, #0
+ 
+       [ :LNOT: FixCallBacks
+-        MSREQ   CPSR_c, #I32_bit + SVC32_mode           ; IRQs off for SPSR use
++        vMSREQ  CPSR_c, #I32_bit + SVC32_mode           ; IRQs off for SPSR use
+       ]
+-        MSREQ   SPSR_cxsf, lr
++        vMSREQ  SPSR_cxsf, lr
+         LDREQ   lr, [sp], #4
+         Pull    "r10-r12", EQ
+         MOVEQS  pc, lr
+@@ -294,14 +294,14 @@ SVC * {PC}-SWIRelocation
+ 
+         Push    "r10-r12"
+  [ SupportARMT
+-        MRS     r12, SPSR               ; r12 = saved PSR
++        vMRS    r12, SPSR               ; r12 = saved PSR
+         TST     r12, #T32_bit           ; depending on processor state (ARM/Thumb)
+         LDREQ   r11, [r14, #-4]         ; extract SWI number to r11
+         LDRNEB  r11, [r14, #-2]         ; (ordering to prevent interlocks)
+         BICEQ   r11, r11, #&FF000000
+  |
+         LDR     r11, [r14, #-4]         ; extract SWI number to r11
+-        MRS     r12, SPSR               ; r12 = saved PSR
++        vMRS    r12, SPSR               ; r12 = saved PSR
+         BIC     r11, r11, #&FF000000    ; (ordering to prevent interlocks)
+  ]
+ 
+@@ -309,7 +309,7 @@ SVC * {PC}-SWIRelocation
+ 
+         AND     r10, r12, #I32_bit+F32_bit
+         ORR     r10, r10, #SVC2632      ; set IFTMMMMM = IF0x0011
+-        MSR     CPSR_c, r10             ; restore caller's IRQ state
++        vMSR    CPSR_c, r10             ; restore caller's IRQ state
+ 
+         BIC     r14, r12, #V_bit        ; clear V (some SWIs need original PSR in r12)
+ 
+@@ -527,7 +527,7 @@ VSet_GenerateError ROUT
+       [ FixCallBacks
+         BIC     lr, lr, #&0F
+         ORR     lr, lr, #SVC_mode
+-        MSR     CPSR_c, lr              ; Set caller's interrupt state and 26/32bitness
++        vMSR    CPSR_c, lr              ; Set caller's interrupt state and 26/32bitness
+       ]
+         MOV     r1, #Service_Error
+         BL      Issue_Service
+@@ -540,7 +540,7 @@ VSet_GenerateError ROUT
+ 
+         LDR     r10, =ZeroPage          ; set up r10 and r11 as required
+       [ FixCallBacks
+-        MSR     CPSR_c, #I32_bit + SVC32_mode   ; IRQs off makes CallBackFlag atomic; 32bit so ready for SPSR use
++        vMSR    CPSR_c, #I32_bit + SVC32_mode   ; IRQs off makes CallBackFlag atomic; 32bit so ready for SPSR use
+       ]
+         LDRB    r11, [r10, #CallBack_Flag]
+         B       SWIReturnWithCallBackFlag
+@@ -596,17 +596,17 @@ ErrHandler ROUT
+         CMP     r11, #0
+       ]
+ 
+-        MRS     r12, CPSR
++        vMRS    r12, CPSR
+         BIC     r12, r12, #I32_bit+F32_bit+&0F  ; USR26/32 mode, ARM, IRQs enabled
+ 
+       [ FixCallBacks
+-        MSR     CPSR_c, #I32_bit+SVC32_mode ; disable interrupts for SPSR use and CallBackFlag atomicity
++        vMSR    CPSR_c, #I32_bit+SVC32_mode ; disable interrupts for SPSR use and CallBackFlag atomicity
+         LDRB    r11, [r10, #CallBack_Flag]
+         CMP     r11, #0
+       |
+-        MSREQ   CPSR_c, #I32_bit+SVC32_mode ; disable interrupts for SPSR use
++        vMSREQ  CPSR_c, #I32_bit+SVC32_mode ; disable interrupts for SPSR use
+       ]
+-        MSREQ   SPSR_cxsf, r12
++        vMSREQ  SPSR_cxsf, r12
+ 
+         Pull    "r10-r12", EQ
+         MOVEQS  pc, r14                 ; USR mode, IRQs enabled
+@@ -624,9 +624,9 @@ callback_checking
+ 
+         TST     lr, #I32_bit+&0F        ; user 26/32 mode, ints enabled?
+       [ :LNOT: FixCallBacks             ; already entered with this CPSR
+-        MSRNE   CPSR_c, #I32_bit + SVC32_mode
++        vMSRNE  CPSR_c, #I32_bit + SVC32_mode
+       ]
+-        MSRNE   SPSR_cxsf, lr
++        vMSRNE  SPSR_cxsf, lr
+         LDRNE   lr, [sp], #4
+         Pull    "r10-r12", NE
+         MOVNES  pc, lr                  ; Skip the branch for SVC code speed
+@@ -649,17 +649,17 @@ callback_checking
+         BHI     Do_CallBack
+  ]
+       [ :LNOT: FixCallBacks
+-        MSR     CPSR_c, #I32_bit + SVC32_mode  ; ints off while flag updated
++        vMSR    CPSR_c, #I32_bit + SVC32_mode  ; ints off while flag updated
+         LDRB    r11, [r10, #CallBack_Flag]
+       ]
+         ORR     r11, r11, #CBack_Postpone      ; signal to IRQs
+         STRB    r11, [r10, #CallBack_Flag]
+ back_to_user
+       [ :LNOT: FixCallBacks                    ; already entered with this CPSR
+-        MSR     CPSR_c, #I32_bit + SVC32_mode
++        vMSR    CPSR_c, #I32_bit + SVC32_mode
+       ]
+ back_to_user_irqs_already_off
+-        MSR     SPSR_cxsf, lr
++        vMSR    SPSR_cxsf, lr
+         LDR     lr, [sp], #4
+         Pull    "r10-r12"
+         MOVS    pc, lr
+@@ -695,11 +695,11 @@ Do_CallBack_postpone_already_clear
+  ]
+       [ FixCallBacks
+       [ :LNOT: No26bitCode
+-        MSR     CPSR_c, #I32_bit + SVC2632      ; back to 26-bit mode
++        vMSR    CPSR_c, #I32_bit + SVC2632      ; back to 26-bit mode
+       ]
+         BIC     r11, r11, #CBack_OldStyle
+       |
+-        MSR     CPSR_c, #I32_bit + SVC2632      ; ints off while flag updated
++        vMSR    CPSR_c, #I32_bit + SVC2632      ; ints off while flag updated
+         LDRB    r11, [r10, #CallBack_Flag]
+         BIC     r11, r11, #CBack_Postpone+CBack_OldStyle
+       ]
+@@ -735,26 +735,26 @@ process_callback_chain ROUT
+ 
+         Push   "r0-r6, r10-r12, lr"             ; save some for the callee too.
+       [ FixCallBacks :LAND: No26bitCode
+-        MRS     r0, CPSR
++        vMRS    r0, CPSR
+         Push   "r0"
+       ]
+         LDR     r10, =ZeroPage
+ 
+-        MSR     CPSR_c, #I32_bit + SVC2632      ; ints off while flag updated
++        vMSR    CPSR_c, #I32_bit + SVC2632      ; ints off while flag updated
+         LDRB    r11, [r10, #CallBack_Flag]
+         BIC     r11, r11, #CBack_VectorReq
+         STRB    r11, [r10, #CallBack_Flag]
+ 
+ 01
+-        MSR     CPSR_c, #I32_bit + SVC2632      ; ints off while flag updated
++        vMSR    CPSR_c, #I32_bit + SVC2632      ; ints off while flag updated
+         LDR     r2, [r10, #CallBack_Vector]
+         TEQ     r2, #0
+       [ No26bitCode
+       [ FixCallBacks
+         Pull   "r0", EQ
+-        MSREQ   CPSR_c, r0                      ; restore original interrupt state and 32bitness
++        vMSREQ  CPSR_c, r0                      ; restore original interrupt state and 32bitness
+       |
+-        MSREQ   CPSR_c, #SVC2632                ; ensure exit with ints on
++        vMSREQ  CPSR_c, #SVC2632                ; ensure exit with ints on
+       ]
+         Pull   "r0-r6, r10-r12, PC",EQ
+       |
+@@ -765,7 +765,7 @@ process_callback_chain ROUT
+         MOV     r0, #HeapReason_Free
+         STR     r1, [r10, #CallBack_Vector] ; Keep head valid
+ 
+-        MSR     CPSR_c, #SVC2632                ; enable ints for long bits
++        vMSR    CPSR_c, #SVC2632                ; enable ints for long bits
+ 
+   [ ChocolateSysHeap
+         ASSERT  ChocolateCBBlocks = ChocolateBlockArrays + 0
+@@ -795,7 +795,7 @@ process_callback_chain ROUT
+ 
+ SWIWriteC ROUT
+ 
+-        MSR     CPSR_c, #SVC2632        ; enable interrupts
++        vMSR    CPSR_c, #SVC2632        ; enable interrupts
+ 
+         Push    lr
+ 
+@@ -961,7 +961,7 @@ VectorUserSWI                   ; Not in a module, so call vec
+  |
+         Pull    "r9,lr"
+  ]
+-        MRS     r10, CPSR
++        vMRS    r10, CPSR
+       [ NoARMT2
+         BIC     lr, lr, #&FF000000      ; Can mangle any/all of punter flags
+         AND     r10, r10, #&FF000000
+@@ -1124,7 +1124,7 @@ VecSwiDespatch ROUT
+         MOV     r10, r11                ; SWI number from R11->R10
+ 
+   [ No26bitCode
+-        MRS     r11, CPSR
++        vMRS    r11, CPSR
+       [ NoARMT2
+         AND     r14, r14, #&F0000000    ; extract caller's CCs
+         BIC     r11, r11, #&F0000000    ; mask out ours
+@@ -1135,7 +1135,7 @@ VecSwiDespatch ROUT
+         BIC     r11, r11, #I32_bit      ; enable IRQs   
+         BFI     r11, r14, #28, #4       ; add in caller's CCs
+       ]
+-        MSR     CPSR_cf, r11            ; and set it all up
++        vMSR    CPSR_cf, r11            ; and set it all up
+   |
+         ORR     r14, lr, #SVC_mode
+         BIC     r14, r14, #I_bit        ; Enable IRQs
+@@ -1162,7 +1162,7 @@ NoIrqVecSwiDespatch ROUT
+         Push    lr                      ; this is user's link
+         MOV     r10, r11                ; SWI number from R11->R10
+   [ No26bitCode
+-        MRS     r11, CPSR
++        vMRS    r11, CPSR
+       [ NoARMT2
+         AND     r14, r14, #&F0000000    ; extract caller's CCs
+         BIC     r11, r11, #&F0000000    ; mask out ours
+@@ -1173,7 +1173,7 @@ NoIrqVecSwiDespatch ROUT
+         ORR     r11, r11, #I32_bit      ; disable IRQs
+         BFI     r11, r14, #28, #4       ; add in caller's CCs
+       ]
+-        MSR     CPSR_cf, r11            ; and set it all up
++        vMSR    CPSR_cf, r11            ; and set it all up
+   |
+         ORR     r14, lr, #SVC_mode+I_bit ; Disable IRQ
+         TEQP    r14, #0
+@@ -1226,10 +1226,10 @@ SEXIT ROUT
+         LDR     r12, [r0, #SExitA_ws]
+         LDR     sp_svc, =SVCSTK
+  [ No26bitCode
+-        MRS     r0, CPSR
+-        MSR     CPSR_c, #I32_bit+SVC2632 ; IRQs off (to protect SPSR_svc)
++        vMRS    r0, CPSR
++        vMSR    CPSR_c, #I32_bit+SVC2632 ; IRQs off (to protect SPSR_svc)
+         BIC     r0, r0, #I32_bit+F32_bit+&0F
+-        MSR     SPSR_cxsf, r0            ; Get ready for USR26/32, IRQs on
++        vMSR    SPSR_cxsf, r0            ; Get ready for USR26/32, IRQs on
+         MOVS    pc, lr                  ; lr->pc, SPSR->CPSR
+  |
+         BICS    pc, lr, #ARM_CC_Mask
+diff --git a/castle/RiscOS/Sources/Kernel/s/MemInfo b/castle/RiscOS/Sources/Kernel/s/MemInfo
+index 46633a9..6c8a67f 100644
+--- a/castle/RiscOS/Sources/Kernel/s/MemInfo
++++ b/castle/RiscOS/Sources/Kernel/s/MemInfo
+@@ -120,10 +120,10 @@ flush_all       *       flush_tlb :OR: flush_cache
+ MemoryConvert   ROUT
+         Entry   "r0-r11"                ; Need lots of registers!!
+ 
+-;        MRS     lr, CPSR
++;        vMRS    lr, CPSR
+ ;        Push    "lr"
+ ;        ORR     lr, lr, #I32_bit+F32_bit
+-;        MSR     CPSR_c, lr
++;        vMSR    CPSR_c, lr
+ 
+         BIC     lr, r0, #all,given      ; Need to munge r0 to get rotates to work (must be even).
+         AND     r0, r0, #all,given
+@@ -242,7 +242,7 @@ MemoryConvert   ROUT
+         ARMop   Cache_CleanInvalidateAll,,,r0
+ ;75
+ ;        Pull    "lr"
+-;        MSR     CPSR_c, lr
++;        vMSR    CPSR_c, lr
+         EXIT
+ 
+ 80
+diff --git a/castle/RiscOS/Sources/Kernel/s/Middle b/castle/RiscOS/Sources/Kernel/s/Middle
+index e5a5200..31a1511 100644
+--- a/castle/RiscOS/Sources/Kernel/s/Middle
++++ b/castle/RiscOS/Sources/Kernel/s/Middle
+@@ -344,7 +344,7 @@ SBRKPT ROUT
+         MOV     r0, r10
+         BIC     r14, r12, #T32_bit      ; don't go into Thumb mode
+         LDMFD   sp, {r10-r12}           ; Not banked
+-        MSR     CPSR_c, R14             ; get at registers r13 and r14
++        vMSR    CPSR_c, R14             ; get at registers r13 and r14
+         STMIA   r0, {r1-r12}
+         STR     sp, [r0, #12*4]
+         STR     r14, [r0, #13*4]
+@@ -376,7 +376,7 @@ SUNUSED Push    "R1, lr"
+ 
+ SSETCALL ROUT
+ 
+-        MSR     CPSR_c, #I32_bit + SVC32_mode
++        vMSR    CPSR_c, #I32_bit + SVC32_mode
+         LDR     r10, =ZeroPage
+         LDRB    r11, [r10, #CallBack_Flag]
+         ORR     r11, r11, #CBack_OldStyle
+@@ -469,7 +469,7 @@ NOCALL  LDR     r0, =ZeroPage               ; default callback routine
+         LDR     r14, [r0, #CallBf]
+  [ No26bitCode
+         LDR     r0, [r14, #4*16]
+-        MSR     SPSR_cxsf, r0
++        vMSR    SPSR_cxsf, r0
+  ]
+         LDMIA   r14, {r0-r12, r13_usr, r14_usr}^ ; load user's regs
+         NOP
+@@ -692,7 +692,7 @@ DumpyTheRegisters  ROUT
+   [ No26bitCode
+         ORR     R2, R1, #I32_bit :OR: F32_bit
+         BIC     R2, R2, #T32_bit
+-        MSR     CPSR_c, R2              ; change into original mode
++        vMSR    CPSR_c, R2              ; change into original mode
+         STMIA   R0, {R8-R12}            ; save the banked registers
+ 
+         AND     R2, R1, #&0F
+@@ -702,7 +702,7 @@ DumpyTheRegisters  ROUT
+         
+      [ HAL
+         BNE     UNDEF2
+-        MSR     CPSR_c, #I32_bit+F32_bit+SVC32_mode ; into SVC mode so we have a stack
++        vMSR    CPSR_c, #I32_bit+F32_bit+SVC32_mode ; into SVC mode so we have a stack
+       [ ZeroPage <> 0
+         LDR     R2, =ZeroPage
+       ]
+@@ -713,7 +713,7 @@ DumpyTheRegisters  ROUT
+         STREQB  R2, [R3, #IOCFIQMSK]    ; Blow away all FIQ sources
+      ]
+ UNDEF2
+-        MSR     CPSR_c, #I32_bit+F32_bit+SVC32_mode ; into SVC mode
++        vMSR    CPSR_c, #I32_bit+F32_bit+SVC32_mode ; into SVC mode
+ 
+         MOV     R14, R4                 ; corrupt R14_SVC (but already saved if we were in SVC)
+ ; ... and fall into
+@@ -808,16 +808,16 @@ UNDEF1
+ 
+       [ No26bitCode
+         ; Flatten UND and ABT stacks, jic
+-        MRS     R2, CPSR
++        vMRS    R2, CPSR
+         BIC     R2, R2, #F32_bit + &1F
+         ORR     R3, R2, #ABT32_mode
+-        MSR     CPSR_c, R3                      ; FIQs back on
++        vMSR    CPSR_c, R3                      ; FIQs back on
+         LDR     r13_abort, =ABTSTK
+         ORR     R3, R2, #UND32_mode
+-        MSR     CPSR_c, R3
++        vMSR    CPSR_c, R3
+         LDR     r13_undef, =UNDSTK
+         ORR     R3, R2, #IRQ32_mode
+-        MSR     CPSR_c, R3
++        vMSR    CPSR_c, R3
+       |
+         TEQP    PC, #IRQ_mode+I_bit
+       ]
+@@ -846,7 +846,7 @@ UNDEF ROUT
+         LDR     R14, [R14, #ExceptionDump]
+         STMIA   R14!, {R0-R7}
+  [ No26bitCode
+-        MRS     R1, SPSR
++        vMRS    R1, SPSR
+         STR     R1, [R14, #(16-8)*4]            ; save PSR
+         Pull    R0
+         STR     R0, [R14, #(15-8)*4]            ; save PC
+@@ -868,7 +868,7 @@ ABORTP ROUT
+         LDR     R14, [R14, #ExceptionDump]
+         STMIA   R14!, {R0-R7}
+  [ No26bitCode
+-        MRS     R1, SPSR
++        vMRS    R1, SPSR
+         STR     R1, [R14, #(16-8)*4]            ; save PSR
+         Pull    R0
+         STR     R0, [R14, #(15-8)*4]            ; save PC
+@@ -891,7 +891,7 @@ ABORTD ROUT
+         LDR     R14, [R14, #ExceptionDump]
+         STMIA   R14!, {R0-R7}
+  [ No26bitCode
+-        MRS     R1, SPSR
++        vMRS    R1, SPSR
+         STR     R1, [R14, #(16-8)*4]            ; save PSR
+         Pull    R0
+         STR     R0, [R14, #(15-8)*4]            ; save PC
+@@ -915,7 +915,7 @@ ADDREX ROUT
+         LDR     R14, [R14, #ExceptionDump]
+         STMIA   R14!, {R0-R7}
+  [ No26bitCode
+-        MRS     R1, SPSR
++        vMRS    R1, SPSR
+         STR     R1, [R14, #(16-8)*4]            ; save PSR
+         Pull    R0
+         STR     R0, [R14, #(15-8)*4]
+@@ -945,7 +945,7 @@ Branch0_FromTrampoline
+         LDR     R0, [R14, #4]
+         STR     R0, [R1, #14*4]
+  [ XScaleJTAGDebug
+-        MRS     R0, CPSR
++        vMRS    R0, CPSR
+         AND     R0, R0, #&1F
+         TEQ     R0, #&15        ; Debug mode?
+         BNE     %FT20
+@@ -960,10 +960,10 @@ Branch0_FromTrampoline
+  [ No26bitCode
+         MOV     R0, #0
+         STR     R0, [R1, #15*4]
+-        MRS     R0, CPSR
++        vMRS    R0, CPSR
+         STR     R0, [R1, #16*4]
+  |
+-        MRS     R0, CPSR                        ; Fake up a combined PC+PSR (PC=0)
++        vMRS    R0, CPSR                        ; Fake up a combined PC+PSR (PC=0)
+         AND     R1, R0, #I32_bit :OR: F32_bit
+         AND     R0, R0, #&F0000003
+         ORR     R0, R0, R1, LSL #IF32_26Shift
+@@ -1024,7 +1024,7 @@ DoAnUpCall ROUT
+ 
+         Push    lr                  ; better have one of these to pull later !
+  [ No26bitCode
+-        MRS     r12, CPSR
++        vMRS    r12, CPSR
+       [ NoARMT2
+         BIC     r12, r12, #&F0000000
+         BIC     r12, r12, #I32_bit:OR:F32_bit
+@@ -1035,7 +1035,7 @@ DoAnUpCall ROUT
+         BIC     r10, r12, #I32_bit:OR:F32_bit
+         BFI     r10, lr, #28, #4 ; copy user flags (I bit clear)
+       ]
+-        MSR     CPSR_cf, r10        ; ints on, stay in SVC mode, flags in psr
++        vMSR    CPSR_cf, r10        ; ints on, stay in SVC mode, flags in psr
+  |
+         AND     r10, lr, #&F0000000 ; copy user flags (I_bit clear)
+         TEQP    r10, #SVC_mode      ; ints on, stay in SVC mode, flags in psr
+@@ -1046,7 +1046,7 @@ DoAnUpCall ROUT
+         Pull    lr
+         BIC     lr, lr, #&F0000000
+    [ No26bitCode
+-        MRS     R10, CPSR
++        vMRS    R10, CPSR
+         MOV     R10, R10, LSR #(32-4)
+    |
+         MOV     R10, PC, LSR #(32-4)
+@@ -1054,7 +1054,7 @@ DoAnUpCall ROUT
+         ORR     lr, lr, R10, LSL #(32-4)
+  |
+         ASSERT  No26bitCode
+-        MRS     R10, CPSR
++        vMRS    R10, CPSR
+         Pull    lr
+         MOV     R10, R10, LSR #28
+         BFI     lr, R10, #28, #4
+diff --git a/castle/RiscOS/Sources/Kernel/s/ModHand b/castle/RiscOS/Sources/Kernel/s/ModHand
+index 6a05dfc..d906144 100644
+--- a/castle/RiscOS/Sources/Kernel/s/ModHand
++++ b/castle/RiscOS/Sources/Kernel/s/ModHand
+@@ -2866,9 +2866,9 @@ AddServSysOrUsr ROUT
+ ;
+ AddToServiceChains ROUT
+         Push   "R0-R8,LR"
+-        MRS    R8,CPSR
++        vMRS   R8,CPSR
+         ORR    R4,R8,#I32_bit
+-        MSR    CPSR_c,R4                     ;IRQs off for update of chain structures
++        vMSR   CPSR_c,R4                     ;IRQs off for update of chain structures
+         LDR    R4,[R9,#Module_code_pointer]  ;start of module
+         LDR    R5,[R4,#Module_Service]
+         CMP    R5,#0
+@@ -2900,7 +2900,7 @@ AddToServiceChains ROUT
+         BL     AddServChainEntry
+ 90
+         STRVS  R0,[SP]
+-        MSR    CPSR_c,R8             ;restore IRQ state (26-bit code used to corrupt V!)
++        vMSR   CPSR_c,R8             ;restore IRQ state (26-bit code used to corrupt V!)
+         Pull   "R0-R8,PC"
+ 
+ ;
+@@ -2914,9 +2914,9 @@ AddToServiceChains ROUT
+ ;
+ RemoveFromServiceChains ROUT
+         Push   "R0-R8,R10,LR"
+-        MRS    R10,CPSR
++        vMRS   R10,CPSR
+         ORR    R4,R10,#I32_bit
+-        MSR    CPSR_c,R4                     ;IRQs off for update of chain structures
++        vMSR   CPSR_c,R4                     ;IRQs off for update of chain structures
+         LDR    R4,[R9,#Module_code_pointer]
+         LDR    R5,[R4,#Module_Service]
+         CMP    R5,#0
+@@ -2974,7 +2974,7 @@ RemoveFromServiceChains ROUT
+         LDR    R2,[R1]
+         BL     RemoveServChainEntry
+ 90
+-        MSR    CPSR_cf,R10                ;restore IRQ state
++        vMSR   CPSR_cf,R10                ;restore IRQ state
+         Pull   "R0-R8,R10,PC"             ;MUST preserve flags
+ 
+   ] ;ChocolateService
+diff --git a/castle/RiscOS/Sources/Kernel/s/MoreSWIs b/castle/RiscOS/Sources/Kernel/s/MoreSWIs
+index 5828c6a..b6ab3e1 100644
+--- a/castle/RiscOS/Sources/Kernel/s/MoreSWIs
++++ b/castle/RiscOS/Sources/Kernel/s/MoreSWIs
+@@ -577,7 +577,7 @@ RdItem    ROUT
+       LDRVS  R1, [stack]
+       BVS    %FT02          ; not recognised - boring item
+       STR    R1, [stack]    ; new restore value.
+-      MRS    R12, CPSR
++      vMRS   R12, CPSR
+       Push   R12            ; save EQ/NE
+       LDR    R12, [R2, R4, LSL #2]
+       CMP    R12, #UnsetBase
+diff --git a/castle/RiscOS/Sources/Kernel/s/MsgCode b/castle/RiscOS/Sources/Kernel/s/MsgCode
+index 79359bf..013fc9d 100644
+--- a/castle/RiscOS/Sources/Kernel/s/MsgCode
++++ b/castle/RiscOS/Sources/Kernel/s/MsgCode
+@@ -58,7 +58,7 @@ TranslateError  ROUT
+ 
+ TranslateError_UseR4
+         Push    "R8,R9,LR"
+-        MRS     R8,CPSR
++        vMRS    R8,CPSR
+         ORR     R8,R8,#V_bit                    ; V set ready :)
+ 
+         LDR     LR, =ZeroPage
+@@ -68,7 +68,7 @@ TranslateError_UseR4
+ 
+         BIC     R9, R8, #&0F
+         ORR     R9, R9, #SVC_mode               ; SVC mode, preserve IRQ state
+-        MSR     CPSR_c, R9
++        vMSR    CPSR_c, R9
+ 
+         Push    "R0-R7"
+ 
+@@ -114,7 +114,7 @@ TranslateError_UseR4
+ 
+         Pull    "R0-R7"
+ 90
+-        MSR     CPSR_cf, R8                     ; Back to original mode, V set
++        vMSR    CPSR_cf, R8                     ; Back to original mode, V set
+         Pull    "R8,R9,PC"
+ 
+   [ CacheCommonErrors
+diff --git a/castle/RiscOS/Sources/Kernel/s/NewIRQs b/castle/RiscOS/Sources/Kernel/s/NewIRQs
+index 3b9da02..460e9b7 100644
+--- a/castle/RiscOS/Sources/Kernel/s/NewIRQs
++++ b/castle/RiscOS/Sources/Kernel/s/NewIRQs
+@@ -35,7 +35,7 @@
+ Initial_IRQ_Code ROUT
+         SUB     lr, lr, #4
+         Push    "r0, lr"
+-        MRS     lr, SPSR
++        vMRS    lr, SPSR
+         Push    "r1-r3, r11, r12, lr"
+ ; ** For Pete's sake remember to change the heap manager if you change the above
+ ; ** register list!!!!!!! And the [sp_irq, #4*5] below
+@@ -43,7 +43,7 @@ Initial_IRQ_Code ROUT
+   [ :LNOT:No26bitCode
+         BIC     r0, lr, #&1F            ; clear out foreground mode bits
+         ORR     r0, r0, #I32_bit + IRQ26_mode ; force IRQ_26 mode and I bit set
+-        MSR     CPSR_c, r0
++        vMSR    CPSR_c, r0
+   ]
+ 
+         LDR     r12, =ZeroPage
+@@ -72,22 +72,22 @@ Initial_IRQ_Code ROUT
+         STR      r0, [r11, #IRQsema]
+ 
+   [ :LNOT:No26bitCode
+-        MRS      r0, CPSR
++        vMRS     r0, CPSR
+         ORR      r0, r0, #&10
+-        MSR      CPSR_c, r0                     ; switch back to IRQ32 mode
++        vMSR     CPSR_c, r0                     ; switch back to IRQ32 mode
+   ]
+ 
+         LDRB     r11, [r11, #CallBack_Flag]
+         TEQ      r11, #0
+         Pull     "r1-r3, r11, r12, lr", EQ
+-        MSREQ    SPSR_cxsf, lr
++        vMSREQ   SPSR_cxsf, lr
+         Pull     "r0, pc", EQ, ^
+ 
+         TST      r11, #CBack_Postpone
+         LDREQ    lr, [sp_irq, #4*5]     ; get SPSR off stack
+         TSTEQ    lr, #I32_bit :OR: &0F  ; check we came from USR26 or USR32 mode, with IRQs enabled
+         Pull     "r1-r3, r11, r12, lr", NE
+-        MSRNE    SPSR_cxsf, lr
++        vMSRNE   SPSR_cxsf, lr
+         Pull     "r0, pc", NE, ^
+ 
+ ; Do a CallBack: asked for, not postponed, and we're returning into USR26/32 mode.
+@@ -95,12 +95,12 @@ Initial_IRQ_Code ROUT
+         ASSERT   IRQ32_mode :AND: SVC32_mode = IRQ32_mode ; so the following dodgy ops work
+ 
+         Pull     "r1-r3, r11, r12"
+-        MRS      r0, CPSR
++        vMRS     r0, CPSR
+         ORR      r0, r0, #SVC32_mode
+-        MSR      CPSR_c, r0
++        vMSR     CPSR_c, r0
+         Push     "r10-r12"                               ; push r10-r12 onto the SVC stack
+         BIC      r0, r0, #IRQ32_mode :EOR: SVC32_mode
+-        MSR      CPSR_c, r0
++        vMSR     CPSR_c, r0
+         Pull     "r10-r12"                      ; SPSR, R0, LR really
+  [ No26bitCode :LOR: FixCallBacks
+         ORR      r0, r0, #SVC32_mode
+@@ -108,7 +108,7 @@ Initial_IRQ_Code ROUT
+         BIC      r0, r0, #&1F
+         ORR      r0, r0, #SVC26_mode
+  ]
+-        MSR      CPSR_c, r0
++        vMSR     CPSR_c, r0
+         Push     r12                            ; Save the return address
+         MOV      r14, r10                       ; SPSR into R14
+         MOV      r0, r11                        ; restore original R0
+@@ -580,14 +580,14 @@ NOIRQ ROUT
+         MOV     r1, #1
+         MOV     r1, r1, LSL r12         ; bit to clear
+ 
+-        MRS     lr, CPSR
++        vMRS    lr, CPSR
+         BIC     r12, lr, #&0F
+         ORR     r12, r12, #I32_bit+F32_bit+IRQ_mode
+-        MSR     CPSR_c, r12
++        vMSR    CPSR_c, r12
+         LDRB    r12, [r0]       ; FIQs off for updating IOCIRQMSKA
+         BIC     r12, r12, r1
+         STRB    r12, [r0]       ; relevant IRQ disabled
+-        MSR     CPSR_c, lr      ; absolute minimum FIQ disable period
++        vMSR    CPSR_c, lr      ; absolute minimum FIQ disable period
+ 
+         STRB    r1, [r0, #IOCIRQCLRA-IOCIRQMSKA] ; Clear IRQ
+  ]
+diff --git a/castle/RiscOS/Sources/Kernel/s/NewReset b/castle/RiscOS/Sources/Kernel/s/NewReset
+index e299d04..f29b03a 100644
+--- a/castle/RiscOS/Sources/Kernel/s/NewReset
++++ b/castle/RiscOS/Sources/Kernel/s/NewReset
+@@ -371,10 +371,10 @@ SetUpKbdReturn
+ ; set up reset interrupt handler (reads, discards keys, setting flags if CTRL or R)
+ ; NB on ARM600 we need to go into 32-bit mode, so we can safely overwrite vectors
+ 
+-        MRS     r0, CPSR                ; switch into IRQ32, still IRQs disabled
++        vMRS    r0, CPSR                ; switch into IRQ32, still IRQs disabled
+         BIC     r0, r0, #&1F
+         ORR     r1, r0, #IRQ32_mode
+-        MSR     CPSR_c, r1
++        vMSR    CPSR_c, r1
+ 
+         LDR     sp_irq, =IRQSTK         ; set up sp_irq
+ 
+@@ -407,7 +407,7 @@ vectorpoke_notSA_1
+  ]
+ 
+         BIC     r0, r0, #I32_bit        ; and enable IRQs
+-        MSR     CPSR_c, r0
++        vMSR    CPSR_c, r0
+ 
+  ; in SVC32 from now until we've finished poking around with vectors
+ 
+@@ -489,10 +489,10 @@ Continue_after_HALInit
+  [ :LNOT: No26bitCode
+ ; Now we have set up the hardware vectors we can drop back to SVC26 mode
+ 
+-        MRS     r0, CPSR
++        vMRS    r0, CPSR
+         BIC     r0, r0, #&1F
+         ORR     r0, r0, #SVC26_mode
+-        MSR     CPSR_c, r0
++        vMSR    CPSR_c, r0
+  ]
+ 
+  [ CacheCMOSRAM
+@@ -610,12 +610,12 @@ kbdwait
+         SUBS    r6, r6, #1              ; else wait a maximum of 5 seconds.
+         BNE     kbdwait
+ kbddone
+-        MSR     CPSR_c, #I32_bit+SVC32_mode
++        vMSR    CPSR_c, #I32_bit+SVC32_mode
+         CallHAL HAL_KbdScanFinish
+         LDR     r1, =ZeroPage+InitIRQWs
+         MOV     r0, #0
+         STRB    r0, [r1, #KbdScanActive]
+-        MSR     CPSR_c, #SVC32_mode
++        vMSR    CPSR_c, #SVC32_mode
+         DebugTX "Keyboard scan complete"
+  |
+     [ KeyWait <> 0
+@@ -1432,10 +1432,10 @@ ResetPart1Done                          ; R0 is reset type
+ 
+ ; we're poking locations 0 and &18 here, so we'd best go back to SVC32
+ 
+-        MRS     r2, CPSR
++        vMRS    r2, CPSR
+         BIC     r3, r2, #&1F
+         ORR     r3, r3, #SVC32_mode
+-        MSR     CPSR_c, r3
++        vMSR    CPSR_c, r3
+  ]
+ 
+  [ DebugForcedReset
+@@ -1469,7 +1469,7 @@ ResetPart1Done                          ; R0 is reset type
+ 
+ ; now back to SVC26
+ 
+-        MSR     CPSR_c, r2
++        vMSR    CPSR_c, r2
+  ]
+ 
+         MOV     R1, #&100
+diff --git a/castle/RiscOS/Sources/Kernel/s/PMF/IIC b/castle/RiscOS/Sources/Kernel/s/PMF/IIC
+index 579fcfa..110a03a 100644
+--- a/castle/RiscOS/Sources/Kernel/s/PMF/IIC
++++ b/castle/RiscOS/Sources/Kernel/s/PMF/IIC
+@@ -162,7 +162,7 @@ IIC_OpV ROUT
+         MOV     lr, #0
+         STR     lr, [sp, #-8]!
+         MOV     r3, r1, LSR #24
+-        MRS     r10, CPSR
++        vMRS    r10, CPSR
+         BIC     r7, r10, #I32_bit :OR: F32_bit
+         ORR     r8, r7, #I32_bit
+       [ HAL
+@@ -173,11 +173,11 @@ IIC_OpV ROUT
+         LDR     r2, =ZeroPage+IRQsema
+         MOV     r12, sp                 ; original sp, also pointer to link
+         ORR     lr, r8, #2_10000
+-        MSR     CPSR_c, lr              ; IRQs off, force 32-bit mode
++        vMSR    CPSR_c, lr              ; IRQs off, force 32-bit mode
+ 
+ 01      LDR     r2, [r2]
+         TEQ     r2, #0
+-        BEQ     %FT50                   ; I²C code not in IRQ stack
++        BEQ     %FT50                   ; IIC code not in IRQ stack
+         LDR     r6, [r2, #4*8]          ; interrupted PC
+ IIC_OpV_PCReference
+         RSB     lr, pc, r6
+@@ -186,7 +186,7 @@ IIC_OpV_PCReference
+         RSBLES  lr, lr, #interrupt_protected_start - (IIC_OpV_PCReference+8)
+         BGT     %BT01
+ 
+-        ; I²C code is already threaded
++        ; IIC code is already threaded
+         LDR     r0, [r2, #4*4]          ; retrieve interrupted iicsp
+         BIC     r0, r0, #(1:SHL:IICStackAlignment)-1
+         LDR     r1, [r0, #-8]           ; old list tail
+@@ -200,12 +200,12 @@ IIC_OpV_PCReference
+         ADR     r0, IIC_OpV_CommonExit
+         STR     r0, [r2, #4*8]          ; poke IRQ stack so previous operation returns as though completed
+         LDR     r0, [r2, #4*6]          ; get interrupted CPSR
+-        MSR     SPSR_cxsf, r0           ; stick it in SPSR (okay, because IRQs are off)
++        vMSR    SPSR_cxsf, r0           ; stick it in SPSR (okay, because IRQs are off)
+         LDR     r0, [r2, #4*7]
+         LDMIB   r2, {r1-r3,r11,r12}
+         MOVS    pc, r6                  ; copy SPSR to CPSR and resume execution
+ 
+-50      ; I²C code not currently threaded - create new environment
++50      ; IIC code not currently threaded - create new environment
+         ADD     iicsp, sp, #4
+         BIC     iicsp, iicsp, #(1:SHL:IICStackAlignment)-1
+         SUB     iicsp, iicsp, #4
+@@ -218,7 +218,7 @@ IIC_OpV_PCReference
+         B       IICStart                ; start working through list
+ 
+ IIC_OpV_CommonExit
+-        MSR     CPSR_c, r10             ; restore original IRQ disable state
++        vMSR    CPSR_c, r10             ; restore original IRQ disable state
+         LDR     sp, [sp]
+         ADD     sp, sp, #4              ; skip next pointer
+         Pull    "r0"
+@@ -241,7 +241,7 @@ interrupt_protected_start
+ ;    CPSR is also non-volatile
+ 
+ IICStart
+-        MSR     CPSR_c, r7              ; enable IRQs (inside protected code) - this may take some time
++        vMSR    CPSR_c, r7              ; enable IRQs (inside protected code) - this may take some time
+         ; drop through...
+ 
+ ; *****************************************************************************
+@@ -255,12 +255,12 @@ IICLoop
+         BIC     r1, iicsp, #(1:SHL:IICStackAlignment)-1
+         LDR     r2, [r1, #-4]           ; list head
+         STR     r0, [r2, #IICLink_Error] ; set up return value
+-        MSR     CPSR_c, r8              ; disable IRQs while we work on the list
++        vMSR    CPSR_c, r8              ; disable IRQs while we work on the list
+         LDR     r2, [r2]
+         TEQ     r2, #0                  ; end of list?
+         BEQ     IIC_OpV_CommonExit      ; finished!
+         STR     r2, [r1, #-4]           ; update list head
+-        MSR     CPSR_c, r7              ; IRQs back on
++        vMSR    CPSR_c, r7              ; IRQs back on
+         LDR     r0, [r2, #IICLink_Array]
+         LDR     r1, [r2, #IICLink_Size] ; get next array
+         B       IICLoop                 ; and loop
+@@ -432,11 +432,11 @@ SetC1C0 ROUT
+         BIC     r0, iicsp, #(1:SHL:IICStackAlignment)-1
+         LDR     r0, [r0, #-4]           ; list head
+         LDRB    r0, [r0, #IICLink_Size+3] ; bus number
+-        MSR     CPSR_c, r8              ; IRQs off for use of ATPCS
++        vMSR    CPSR_c, r8              ; IRQs off for use of ATPCS
+         Push    "lr"
+         CallHAL HAL_IICSetLines
+         Pull    "lr"
+-        MSR     CPSR_c, r7              ; IRQs back on
++        vMSR    CPSR_c, r7              ; IRQs back on
+  |
+         ADD     R0, R0, R1, LSL #1      ; R0 := C0 + C1*2
+ 
+@@ -477,11 +477,11 @@ ReadC1C0 ROUT
+         BIC     r0, iicsp, #(1:SHL:IICStackAlignment)-1
+         LDR     r0, [r0, #-4]           ; list head
+         LDRB    r0, [r0, #IICLink_Size+3] ; bus number 
+-        MSR     CPSR_c, r8              ; IRQs off for use of ATPCS
++        vMSR    CPSR_c, r8              ; IRQs off for use of ATPCS
+         Push    "lr"
+         CallHAL HAL_IICReadLines
+         Pull    "lr"
+-        MSR     CPSR_c, r7              ; IRQs back on
++        vMSR    CPSR_c, r7              ; IRQs back on
+      iicPull    "r2,r3,pc"
+  |
+         LDRB    a1, [r9, #IOCControl]
+@@ -506,11 +506,11 @@ iicDoMicroDelay ROUT
+      iicPush    "a3,a4,iiclr"
+         MOVS    a1, a1, LSR #1
+         ADC     a1, a1, #0
+-        MSR     CPSR_c, r8              ; IRQs off for use of ATPCS
++        vMSR    CPSR_c, r8              ; IRQs off for use of ATPCS
+         Push    "lr"
+         CallHAL HAL_CounterDelay
+         Pull    "lr"
+-        MSR     CPSR_c, r7              ; IRQs back on
++        vMSR    CPSR_c, r7              ; IRQs back on
+      iicPull    "a3,a4,pc"
+   |
+      iicPush    "iiclr"
+@@ -542,7 +542,7 @@ iicDoMicroDelay ROUT
+ ClockData ROUT
+  [ No26bitCode
+      iicPush    "R0-R3,iiclr"
+-        MRS     R2,CPSR
++        vMRS    R2,CPSR
+  |
+      iicPush    "R0-R1,R3,iiclr"
+  ]
+@@ -553,7 +553,7 @@ ClockData ROUT
+ 
+ ; Disable interrupts to ensure clock hi with data hi is only transient
+ ; This allows BMU to detect idle condition by polling
+-        MSR     CPSR_c, r8
++        vMSR    CPSR_c, r8
+ 
+         MOV     R0, R3
+         MOV     R1, #1                  ; Clock hi
+@@ -566,7 +566,7 @@ ClockData ROUT
+      iicBL      SetC1C0
+ 
+  [ No26bitCode
+-        MSR     CPSR_cf,R2              ; Restore interrupts and flags
++        vMSR    CPSR_cf,R2              ; Restore interrupts and flags
+      iicPull    "R0-R3,PC"
+  |
+      iicPull    "R0-R1,R3,PC",,^
+@@ -652,7 +652,7 @@ Acknowledge ROUT
+ ; Disable interrupts to ensure clock hi with data hi is only transient
+ ; This allows BMU to detect idle condition by polling
+ 
+-        MSR     CPSR_c, R8
++        vMSR    CPSR_c, R8
+  ]
+         MOV     R0, #1                  ; clock HI, data HI
+         MOV     R1, #1
+@@ -668,7 +668,7 @@ Acknowledge ROUT
+      iicBL      SetC1C0
+ 
+  [ {TRUE}
+-        MSR     CPSR_c, R7
++        vMSR    CPSR_c, R7
+  ]
+ 
+         TST     R2, #1
+@@ -784,7 +784,7 @@ RXByte  ROUT
+ ; Disable interrupts to ensure clock hi with data hi is only transient
+ ; This allows BMU to detect idle condition by polling
+ 
+-        MSR     CPSR_c, R8
++        vMSR    CPSR_c, R8
+  ]
+         MOV     R0, #1                  ; pulse clock HI
+         MOV     R1, #1
+@@ -798,7 +798,7 @@ RXByte  ROUT
+      iicBL      SetC1C0
+ 
+  [ {TRUE}
+-        MSR     CPSR_c, R7
++        vMSR    CPSR_c, R7
+  ]
+         SUBS    R2, R2, #1
+         BCS     %BT10
+@@ -835,11 +835,11 @@ IIC_OpV_HAL_Retry
+         MOV     R2, R3
+         AND     R0, R1, #255
+         MOV     R1, R1, LSR #8
+-        MSR     CPSR_c, R8              ; IRQs off for use of ATPCS
++        vMSR    CPSR_c, R8              ; IRQs off for use of ATPCS
+         Push    "lr"
+         CallHAL HAL_IICTransfer
+         Pull    "lr"
+-        MSR     CPSR_c, R7              ; IRQs back on
++        vMSR    CPSR_c, R7              ; IRQs back on
+      iicPull    "R2,R3"
+ 
+ 20      TEQ     R0, #2
+@@ -902,7 +902,7 @@ IICAbort
+         Push    "R0-R3,R7,R8,R9,R11,R12,R14"
+         MOV     R11,R13
+         SUB     R13,R13,#(1:SHL:IICStackAlignment)+4
+-        MRS     R7,CPSR
++        vMRS    R7,CPSR
+         ORR     R8,R7,#I32_bit
+  [ HAL
+         AddressHAL
+diff --git a/castle/RiscOS/Sources/Kernel/s/PMF/i2cutils b/castle/RiscOS/Sources/Kernel/s/PMF/i2cutils
+index 0e146b3..38b253d 100644
+--- a/castle/RiscOS/Sources/Kernel/s/PMF/i2cutils
++++ b/castle/RiscOS/Sources/Kernel/s/PMF/i2cutils
+@@ -1950,15 +1950,15 @@ NVMemory_Size
+ ;
+ NVMemory_Read
+         Entry   "R4"
+-        MRS     R4, CPSR
++        vMRS    R4, CPSR
+         BIC     R0, R4, #I32_bit
+-        MSR     CPSR_c, R0      ; enable interrupts - this may take some time
++        vMSR    CPSR_c, R0      ; enable interrupts - this may take some time
+         MOV     R0, R1
+         BL      ReadWithError
+         MOVVC   R2, R0
+         MOVVC   R0, #1          ; must preserve R0
+         ORRVS   R4, R4, #V_bit
+-        MSR     CPSR_cf, R4     ; restore interrupt state
++        vMSR    CPSR_cf, R4     ; restore interrupt state
+         EXIT
+ 
+ ; -----------------------------------------------------------------------------
+@@ -1974,15 +1974,15 @@ NVMemory_Write ROUT
+         MOVEQ   PC, R14
+       ]
+         Entry   "R1,R4"
+-        MRS     R4, CPSR
++        vMRS    R4, CPSR
+         BIC     R0, R4, #I32_bit
+-        MSR     CPSR_c, R0      ; enable interrupts - this may take some time
++        vMSR    CPSR_c, R0      ; enable interrupts - this may take some time
+         MOV     R0, R1
+         MOV     R1, R2
+         BL      WriteWithError
+         MOVVC   R0, #2          ; must preserve R0
+         ORRVS   R4, R4, #V_bit
+-        MSR     CPSR_cf, R4     ; restore interrupt state
++        vMSR    CPSR_cf, R4     ; restore interrupt state
+         EXIT
+ 
+ ; -----------------------------------------------------------------------------
+@@ -1995,16 +1995,16 @@ NVMemory_Write ROUT
+ ;
+ NVMemory_ReadBlock
+         Entry   "R1-R4"
+-        MRS     R4, CPSR
++        vMRS    R4, CPSR
+         BIC     R0, R4, #I32_bit
+-        MSR     CPSR_c, R0      ; enable interrupts - this may take some time
++        vMSR    CPSR_c, R0      ; enable interrupts - this may take some time
+         MOV     R0, R1
+         MOV     R1, R2
+         MOV     R2, R3
+         BL      ReadBlock
+         MOVVC   R0, #3          ; must preserve R0
+         ORRVS   R4, R4, #V_bit
+-        MSR     CPSR_cf, R4     ; restore interrupt state
++        vMSR    CPSR_cf, R4     ; restore interrupt state
+         EXIT
+ 
+ ; -----------------------------------------------------------------------------
+@@ -2017,9 +2017,9 @@ NVMemory_ReadBlock
+ ;
+ NVMemory_WriteBlock ROUT
+         Entry   "R1-R4"
+-        MRS     R4, CPSR
++        vMRS    R4, CPSR
+         BIC     R0, R4, #I32_bit
+-        MSR     CPSR_c, R0      ; enable interrupts - this may take some time
++        vMSR    CPSR_c, R0      ; enable interrupts - this may take some time
+       [ ProtectStationID
+         ASSERT  NetStnCMOS = 0
+         TEQ     R1, #NetStnCMOS
+@@ -2035,7 +2035,7 @@ NVMemory_WriteBlock ROUT
+         BL      WriteBlock
+         MOVVC   R0, #4          ; must preserve R0
+         ORRVS   R4, R4, #V_bit
+-        MSR     CPSR_cf, R4     ; restore interrupt state
++        vMSR    CPSR_cf, R4     ; restore interrupt state
+         EXIT
+ 
+ ; -----------------------------------------------------------------------------
+diff --git a/castle/RiscOS/Sources/Kernel/s/PMF/key b/castle/RiscOS/Sources/Kernel/s/PMF/key
+index 7cc2632..be922ef 100644
+--- a/castle/RiscOS/Sources/Kernel/s/PMF/key
++++ b/castle/RiscOS/Sources/Kernel/s/PMF/key
+@@ -182,14 +182,14 @@ SetLEDs
+         MOV     r0, #3
+  [ AssembleKEYV
+         Push    "r10-r12,lr"
+-        MRS     r11, CPSR               ; Save current PSR.
++        vMRS    r11, CPSR               ; Save current PSR.
+         ORR     r10, r11, #SVC_mode + I32_bit
+-        MSR     CPSR_c, r10             ; Call KEYV in SVC mode, no IRQs.
++        vMSR    CPSR_c, r10             ; Call KEYV in SVC mode, no IRQs.
+         MOV     r10, #KEYV
+         Push    "lr"                    ; Save SVC lr.
+         BL      CallVector
+         Pull    "lr"                    ; Restore SVC lr.
+-        MSR     CPSR_cf, r11            ; Go back to old mode.
++        vMSR    CPSR_cf, r11            ; Go back to old mode.
+         NOP
+         Pull    "r10-r12,pc"
+  |
+@@ -648,9 +648,9 @@ ReturnVector
+ ; On exit:  R5 = new new status, R12 corrupt, all other registers preserved
+ OfferKeyStatusUpCall
+         Entry   "R0-R3,R10,R11"
+-        MRS     R11, CPSR
++        vMRS    R11, CPSR
+         ORR     R10, R11, #SVC_mode + I32_bit
+-        MSR     CPSR_c, R10
++        vMSR    CPSR_c, R10
+         Push    "R14"
+         MOV     R10, #UpCallV
+         MOV     R3, R5                        ; new value
+@@ -665,15 +665,15 @@ OfferKeyStatusUpCall
+         MOVNE   R0, #UpCall_KeyboardStatus
+         BLNE    CallVector
+         Pull    "R14"
+-        MSR     CPSR_cf, R11
++        vMSR    CPSR_cf, R11
+         NOP
+         EXIT
+ 
+ OfferPostKeyStatusUpCall
+         ALTENTRY
+-        MRS     R11, CPSR
++        vMRS    R11, CPSR
+         ORR     R10, R11, #SVC_mode + I32_bit
+-        MSR     CPSR_c, R10
++        vMSR    CPSR_c, R10
+         Push    "R14"
+         MOV     R3, R5
+         MOV     R2, R12
+@@ -1736,9 +1736,9 @@ ConvertInternalKey ROUT
+ ;
+ 
+ InstallKeyHandler ROUT
+-        MRS     R11, CPSR
++        vMRS    R11, CPSR
+         ORR     R11, R11, #I32_bit
+-        MSR     CPSR_c, R11             ; disable IRQs
++        vMSR    CPSR_c, R11             ; disable IRQs
+ 
+         LDR     R11, =ZeroPage+KeyWorkSpace
+         TEQ     R0, #1                  ; asking for keyboard id ?
+diff --git a/castle/RiscOS/Sources/Kernel/s/PMF/osbyte b/castle/RiscOS/Sources/Kernel/s/PMF/osbyte
+index 6a71d37..e4dc87c 100644
+--- a/castle/RiscOS/Sources/Kernel/s/PMF/osbyte
++++ b/castle/RiscOS/Sources/Kernel/s/PMF/osbyte
+@@ -534,7 +534,7 @@ Osbyte12 ROUT
+ 
+ Osbyte13 ROUT
+ 
+-        MRS     R3, CPSR                ; Interrupts disabled at the moment
++        vMRS    R3, CPSR                ; Interrupts disabled at the moment
+ 
+         ; bug fix for MED-03165. Having a DPMS-blanked screen stopped printing.
+         ; The reason is that HSyncs stop and VSyncs stop as a consequence,
+@@ -556,7 +556,7 @@ Osbyte13 ROUT
+         LDRB    R2, CFStime
+ 10
+         BIC     R1, R3, #I32_bit
+-        MSR     CPSR_c, R1              ; CLI
++        vMSR    CPSR_c, R1              ; CLI
+ 
+    ;StrongARM core will not see interrupt unless disable is cleared for at least 5 cycles,
+    ;in order to fill synchroniser pipe
+@@ -567,7 +567,7 @@ Osbyte13 ROUT
+         NOP
+         NOP
+  ]
+-        MSR     CPSR_c, R3              ; SEI
++        vMSR    CPSR_c, R3              ; SEI
+         LDRB    R1, CFStime
+         TEQ     R1, R2
+         MyOsbyte NE
+@@ -860,13 +860,13 @@ Exit7D
+         TEQ     R12, #1
+         Pull    "R11, PC", NE
+ 
+-        MRS     R11, CPSR                       ; Preserve old processor state
++        vMRS    R11, CPSR                       ; Preserve old processor state
+         ORR     R12, R11, #SVC_mode             ; Switch to SVC mode preserving IRQ_bit
+-        MSR     CPSR_c, R12
++        vMSR    CPSR_c, R12
+         Push    R14                             ; Preserve SVC_R14
+         SWI     XOS_SetCallBack
+         Pull    R14                             ; Restore SVC_R14
+-        MSR     CPSR_c, R11                     ; Switch back to original mode, with V_bit intact from SWI
++        vMSR    CPSR_c, R11                     ; Switch back to original mode, with V_bit intact from SWI
+ 
+         Pull    "R11, PC"
+ 
+@@ -1039,9 +1039,9 @@ Osbyte87
+  ;
+  ; If the caller had interrupts enabled, an interrupt may have corrupted SPSR
+  ; the worst effect of this is that we may not enable interrupts. So...
+-        MRS     R3, SPSR
++        vMRS    R3, SPSR
+         TST     R3, #I32_bit            ; EQ => IRQs were on
+-        MSREQ   CPSR_c, #SVC2632        ; so turn them on
++        vMSREQ  CPSR_c, #SVC2632        ; so turn them on
+         ByteToNosbod DoOSBYTE87         ; Results in R1, R2 (i.e. char, mode)
+         MyOsbyte
+ 
+diff --git a/castle/RiscOS/Sources/Kernel/s/PMF/oseven b/castle/RiscOS/Sources/Kernel/s/PMF/oseven
+index 0344d62..635f224 100644
+--- a/castle/RiscOS/Sources/Kernel/s/PMF/oseven
++++ b/castle/RiscOS/Sources/Kernel/s/PMF/oseven
+@@ -79,9 +79,9 @@ WRITE   ROUT
+         MOVS    R2, R2, LSL #(32-6)
+         Pull    PC, CS                  ; escape
+ 
+-        MRS     R14, CPSR
++        vMRS    R14, CPSR
+         BIC     R2, R14, #I32_bit
+-        MSR     CPSR_c, R2              ; CLI
++        vMSR    CPSR_c, R2              ; CLI
+       [ StrongARM
+         NOP
+         NOP
+@@ -89,7 +89,7 @@ WRITE   ROUT
+         NOP
+         NOP
+       ]
+-        MSR     CPSR_c, R14             ; restore I
++        vMSR    CPSR_c, R14             ; restore I
+         B       %BT10
+ 
+ ; *****************************************************************************
+diff --git a/castle/RiscOS/Sources/Kernel/s/PMF/osinit b/castle/RiscOS/Sources/Kernel/s/PMF/osinit
+index 3206188..a0531d9 100644
+--- a/castle/RiscOS/Sources/Kernel/s/PMF/osinit
++++ b/castle/RiscOS/Sources/Kernel/s/PMF/osinit
+@@ -390,9 +390,9 @@ UpdateLatchB
+ 
+ UpdateMonitorTypeLatch
+         Push    "R2, R3, R14"
+-        MRS     R14, CPSR
++        vMRS    R14, CPSR
+         ORR     R2, R14, #I32_bit
+-        MSR     CPSR_c, R2              ; disable IRQ
++        vMSR    CPSR_c, R2              ; disable IRQ
+ 
+         LDR     R2, =ZeroPage
+         LDRB    R3, [R2, #CLine_Softcopy]
+@@ -405,7 +405,7 @@ UpdateMonitorTypeLatch
+ 
+         AND     R4, R3, #1              ;Clear all but our bit into R4
+ 
+-        MSR     CPSR_cf, R14            ;Re-enable IRQ, restore flags
++        vMSR    CPSR_cf, R14            ;Re-enable IRQ, restore flags
+         Pull    "R2, R3, PC"
+ 
+ 
+diff --git a/castle/RiscOS/Sources/Kernel/s/vdu/vducursoft b/castle/RiscOS/Sources/Kernel/s/vdu/vducursoft
+index aa51cde..24dd538 100644
+--- a/castle/RiscOS/Sources/Kernel/s/vdu/vducursoft
++++ b/castle/RiscOS/Sources/Kernel/s/vdu/vducursoft
+@@ -87,9 +87,9 @@ PreWrchCursor
+ ; us reading it and writing it
+ 
+  [ No26bitCode
+-        MRS     R3, CPSR
++        vMRS    R3, CPSR
+         ORR     R1, R3, #I32_bit
+-        MSR     CPSR_c, R1
++        vMSR    CPSR_c, R1
+  |
+         SETPSR  I_bit, R1
+  ]
+@@ -110,7 +110,7 @@ PreWrchCursor
+         MOV     R14,R2
+ 
+  [ No26bitCode
+-        MSR     CPSR_c, R3                      ; restore old I bit
++        vMSR    CPSR_c, R3                      ; restore old I bit
+         MOVCS   PC, R14                         ; already off, so exit
+  |
+         MOVCSS  PC, R14                         ; already off, so exit
+@@ -287,11 +287,11 @@ PostWrchCursor ROUT
+         BNE     %FT10
+ 
+         MOV     R6,R14
+-        MRS     R4,CPSR
++        vMRS    R4,CPSR
+         ORR     R3,R4,#I32_bit
+-        MSR     CPSR_c,R3
++        vMSR    CPSR_c,R3
+         BL      RestorePointer
+-        MSR     CPSR_c,R4
++        vMSR    CPSR_c,R4
+         MOV     R14,R6
+ 10
+ 
+diff --git a/castle/RiscOS/Sources/Kernel/s/vdu/vdugrafv b/castle/RiscOS/Sources/Kernel/s/vdu/vdugrafv
+index 13adf16..f517ccb 100644
+--- a/castle/RiscOS/Sources/Kernel/s/vdu/vdugrafv
++++ b/castle/RiscOS/Sources/Kernel/s/vdu/vdugrafv
+@@ -68,9 +68,9 @@ GV_VSync        ROUT
+ ; Switch to interrupt mode to process this.
+         ASSERT  No26bitCode
+         LDR     WsPtr, =ZeroPage+OsbyteVars
+-        MRS     r4, CPSR
++        vMRS    r4, CPSR
+         Push    "lr"
+-        MSR     CPSR_c, #I32_bit + IRQ32_mode
++        vMSR    CPSR_c, #I32_bit + IRQ32_mode
+         Push    "r4, lr"
+      [ HAL
+         Push    "pc"
+@@ -80,7 +80,7 @@ GV_VSync        ROUT
+         BL      VsyncIRQ_ExtEntry
+      ]
+         Pull    "r4, lr"
+-        MSR     CPSR_c, r4
++        vMSR    CPSR_c, r4
+         MOV     r4, #0
+         Pull    "pc"
+  ]
+diff --git a/castle/RiscOS/Sources/Kernel/s/vdu/vdupalette b/castle/RiscOS/Sources/Kernel/s/vdu/vdupalette
+index 12466be..4e19f2c 100644
+--- a/castle/RiscOS/Sources/Kernel/s/vdu/vdupalette
++++ b/castle/RiscOS/Sources/Kernel/s/vdu/vdupalette
+@@ -219,13 +219,13 @@ DoReadPalette Entry
+ DoFirstFlash EntryS "r0,r4"
+         MOV     r4, #paletteV_1stFlashState
+ SetFlashState
+-        MRS     r0, CPSR
++        vMRS    r0, CPSR
+         ORR     r1, r0, #I32_bit + SVC_mode     ; to SVC26/32 mode
+-        MSR     CPSR_c, r1
++        vMSR    CPSR_c, r1
+         Push    "lr"
+         BL      CallPaletteV
+         Pull    "lr"
+-        MSR     CPSR_c, r0
++        vMSR    CPSR_c, r0
+         EXITS
+ 
+ ; *****************************************************************************
+diff --git a/castle/RiscOS/Sources/Kernel/s/vdu/vdupointer b/castle/RiscOS/Sources/Kernel/s/vdu/vdupointer
+index 864ed86..59b9bb2 100644
+--- a/castle/RiscOS/Sources/Kernel/s/vdu/vdupointer
++++ b/castle/RiscOS/Sources/Kernel/s/vdu/vdupointer
+@@ -305,9 +305,9 @@ DoMouseBoxRegs
+ 
+ ; everything seems OK, so disable IRQs while we update vars
+ 
+-        MRS     R14, CPSR
++        vMRS    R14, CPSR
+         ORR     R0, R14, #I32_bit
+-        MSR     CPSR_c, R0
++        vMSR    CPSR_c, R0
+ 
+         Push    R11
+         LDR     R11, =ZeroPage+KeyWorkSpace
+@@ -331,7 +331,7 @@ DoMouseBoxRegs
+ 
+         Pull    R11
+ 
+-        MSR     CPSR_c, R14             ; restore old IRQ state
++        vMSR    CPSR_c, R14             ; restore old IRQ state
+ 10
+         Pull    "R1-R6, PC"
+ 
+diff --git a/castle/RiscOS/Sources/Kernel/s/vdu/vduswis b/castle/RiscOS/Sources/Kernel/s/vdu/vduswis
+index aef137e..d98d921 100644
+--- a/castle/RiscOS/Sources/Kernel/s/vdu/vduswis
++++ b/castle/RiscOS/Sources/Kernel/s/vdu/vduswis
+@@ -1079,9 +1079,9 @@ ReadMonitorType Entry "r0-r2"
+ ;
+ 
+ SWIClaimScreenMemory ROUT
+-        MRS     R11, CPSR               ; disable IRQs, so can be called from
++        vMRS    R11, CPSR               ; disable IRQs, so can be called from
+         ORR     R11, R11, #I32_bit      ; an IRQ routine
+-        MSR     CPSR_c, R11
++        vMSR    CPSR_c, R11
+ 
+         VDWS    WsPtr
+         TEQ     R0, #0                  ; 0 => release
+-- 
+1.8.4.rc3
+

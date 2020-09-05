@@ -1,0 +1,39 @@
+From 420206952415e0efe7f82312422c078fa12d1370 Mon Sep 17 00:00:00 2001
+From: Timothy E Baldwin <T.E.Baldwin99@members.leeds.ac.uk>
+Date: Sun, 20 Oct 2013 23:17:01 +0100
+Subject: [PATCH 34/35] Modules 5 - Obey
+
+---
+ castle/RiscOS/BuildSys/Components/ROOL/Linux | 2 +-
+ castle/RiscOS/Sources/Programmer/Obey/s/Obey | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/castle/RiscOS/BuildSys/Components/ROOL/Linux b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+index 78b13a9..cda9457 100644
+--- a/castle/RiscOS/BuildSys/Components/ROOL/Linux
++++ b/castle/RiscOS/BuildSys/Components/ROOL/Linux
+@@ -91,7 +91,7 @@ International -type EXP
+ #NetFiler
+ #NetPrint
+ #NetStatus
+-#Obey
++Obey
+ #ParallelDeviceDriver
+ #Pinboard
+ #PipeFS
+diff --git a/castle/RiscOS/Sources/Programmer/Obey/s/Obey b/castle/RiscOS/Sources/Programmer/Obey/s/Obey
+index e5df9c6..f26bec8 100644
+--- a/castle/RiscOS/Sources/Programmer/Obey/s/Obey
++++ b/castle/RiscOS/Sources/Programmer/Obey/s/Obey
+@@ -84,6 +84,8 @@ Module_BaseAddr
+                 GBLL    hostvdu
+                 GBLL    internat
+ 
++ParaVirt        SETL    false
++
+ debug           SETL    false    ; global switch for debugging
+ debugxx         SETL    false    ; general stuff
+ debugcommand    SETL    false   ; command line decoding
+-- 
+1.8.4.rc3
+
